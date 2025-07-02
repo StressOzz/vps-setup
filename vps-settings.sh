@@ -50,8 +50,6 @@ nft add rule inet filter input iifname "lo" accept
 echo "⏱ Добавляем rate limiting для SSH (макс 3 новых подключения в минуту)..."
 nft add rule inet filter input tcp dport $SSH_PORT ct state new limit rate 3/minute accept
 
-nft add rule inet filter input tcp dport $SSH_PORT accept comment 'SSH-порт'
-
 echo "🚫 Блокируем ICMP ping..."
 nft add rule inet filter input icmp type echo-request drop
 
@@ -59,6 +57,7 @@ echo "💾 Сохраняем правила..."
 nft list ruleset > /etc/nftables.conf
 systemctl enable nftables
 systemctl restart nftables
+
 
 # ========== SSH-ПОРТ ==========
 echo "🔐 Перенос SSH на порт $SSH_PORT..."
