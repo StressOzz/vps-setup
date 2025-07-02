@@ -48,7 +48,7 @@ nft add rule inet filter input ct state established,related accept
 nft add rule inet filter input iifname "lo" accept
 
 echo "⏱ Добавляем rate limiting для SSH (макс 3 новых подключения в минуту)..."
-nft add rule inet filter input tcp dport $SSH_PORT ct state new limit rate 3/minute accept comment 'SSH rate limit'
+nft add rule inet filter input tcp dport $SSH_PORT ct state new limit rate 3/minute accept
 
 nft add rule inet filter input tcp dport $SSH_PORT accept comment 'SSH-порт'
 
