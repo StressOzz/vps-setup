@@ -48,9 +48,9 @@ nft add rule inet filter input ct state established,related accept
 nft add rule inet filter input iifname "lo" accept
 
 echo "⏱ Добавляем rate limiting для SSH (макс 3 новых подключения в минуту)..."
-nft add rule inet filter input tcp dport $SSH_PORT ct state new limit rate 3/minute accept comment "SSH rate limit"
+nft add rule inet filter input tcp dport $SSH_PORT ct state new limit rate 3/minute accept comment 'SSH rate limit'
 
-nft add rule inet filter input tcp dport $SSH_PORT accept comment "SSH-порт"
+nft add rule inet filter input tcp dport $SSH_PORT accept comment 'SSH-порт'
 
 echo "🚫 Блокируем ICMP ping..."
 nft add rule inet filter input icmp type echo-request drop
@@ -96,7 +96,7 @@ cat > /etc/fail2ban/jail.local <<EOF
 [DEFAULT]
 bantime = 86400
 findtime = 600
-maxretry = 4
+maxretry = 3
 
 [sshd]
 enabled = true
@@ -109,29 +109,37 @@ systemctl restart fail2ban
 echo "🔍 Проверяем статус fail2ban..."
 systemctl is-active --quiet fail2ban && echo "✅ Fail2ban запущен и работает" || echo "❌ Fail2ban не запущен!"
 
-# ========== ОТКЛЮЧЕНИЕ IPv6 ==========
-echo "🌐 Отключение IPv6..."
-GRUB_CONF="/etc/default/grub"
+# ========== ВОПРОС ОТКЛЮЧЕНИЯ IPv6 ==========
+read -p "🌐 Отключить IPv6? (Y/n, по умолчанию Y): " DISABLE_IPV6
+DISABLE_IPV6=${DISABLE_IPV6:-Y}
 
-if ! grep -q "ipv6.disable=1" "$GRUB_CONF"; then
-    sed -i 's/^GRUB_CMDLINE_LINUX="/GRUB_CMDLINE_LINUX="ipv6.disable=1 /' "$GRUB_CONF"
-    update-grub
-fi
+if [[ "$DISABLE_IPV6" =~ ^[Yy]$ ]]; then
+    echo "🌐 Отключение IPv6..."
+    GRUB_CONF="/etc/default/grub"
 
-cat > /etc/sysctl.d/99-disable-ipv6.conf <<EOF
+    if ! grep -q "ipv6.disable=1" "$GRUB_CONF"; then
+        sed -i 's/^GRUB_CMDLINE_LINUX="/GRUB_CMDLINE_LINUX="ipv6.disable=1 /' "$GRUB_CONF"
+        update-grub
+    fi
+
+    cat > /etc/sysctl.d/99-disable-ipv6.conf <<EOF
 net.ipv6.conf.all.disable_ipv6 = 1
 net.ipv6.conf.default.disable_ipv6 = 1
 net.ipv6.conf.lo.disable_ipv6 = 1
 EOF
 
-sysctl --system
+    sysctl --system
+    echo "✅ IPv6 отключён (для полного эффекта нужна перезагрузка)"
+else
+    echo "ℹ️ IPv6 оставлен включённым"
+fi
 
 echo -e "\n✅ Готово:"
 echo "🔸 Пинг отключён"
-echo "🔸 IPv6 отключён"
 echo "🔸 SSH перенесён на порт $SSH_PORT"
 echo "🔸 Fail2ban установлен и настроен: бан на сутки после 3 неудачных попыток"
 echo "🔸 В nftables добавлен rate limiting для SSH"
-echo -e "\n🔁 Перезагрузка сервера через 5 секунд... Не Забудте изменить порт SSH в терминале !!!!"
+
+echo -e "\n🔁 Сервер будет перезагружен через 5 секунд. Не забудьте использовать новый порт SSH при подключении!"
 sleep 5
 reboot
