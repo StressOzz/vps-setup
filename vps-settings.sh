@@ -79,35 +79,6 @@ else
     exit 1
 fi
 
-# ========== УСТАНОВКА И НАСТРОЙКА FAIL2BAN ==========
-echo "🔒 Проверяем и устанавливаем fail2ban..."
-if ! command -v fail2ban-server &>/dev/null; then
-    apt install -y fail2ban
-fi
-
-echo "⚙️ Включаем и запускаем fail2ban..."
-systemctl enable fail2ban
-systemctl restart fail2ban
-
-echo "📝 Создаём кастомную конфигурацию fail2ban для SSH..."
-
-cat > /etc/fail2ban/jail.local <<EOF
-[DEFAULT]
-bantime = 86400
-findtime = 600
-maxretry = 3
-
-[sshd]
-enabled = true
-port = $SSH_PORT
-logpath = /var/log/auth.log
-EOF
-
-systemctl restart fail2ban
-
-echo "🔍 Проверяем статус fail2ban..."
-systemctl is-active --quiet fail2ban && echo "✅ Fail2ban запущен и работает" || echo "❌ Fail2ban не запущен!"
-
 # ========== ВОПРОС ОТКЛЮЧЕНИЯ IPv6 ==========
 read -p "🌐 Отключить IPv6? (Y/n, по умолчанию Y): " DISABLE_IPV6
 DISABLE_IPV6=${DISABLE_IPV6:-Y}
