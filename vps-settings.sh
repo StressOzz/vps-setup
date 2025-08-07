@@ -73,7 +73,7 @@ else
 fi
 
 # 🚫 Отключение ICMP
-echo -e "\n${WHITE}🔹 Отключаем пинг (ICMP echo-request)...${RESET}"
+echo -e "\n${RED}🔹 Отключаем пинг (ICMP echo-request)...${RESET}"
 if ! grep -q "net.ipv4.icmp_echo_ignore_all" /etc/sysctl.conf; then
     echo "net.ipv4.icmp_echo_ignore_all = 1" >> /etc/sysctl.conf
     sysctl -p >/dev/null 2>&1
