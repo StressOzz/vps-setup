@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v3.1"
+VERSION="v3.2"
 
 clear
 
@@ -113,6 +113,7 @@ if [[ "$REBOOT" =~ ^[Yy]$ ]]; then
     done
 echo ""
     echo -e "\n${PURPLE}🚀 Перезагрузка...${RESET}"
+echo ""
     reboot
 else
     echo -e "${CYAN}Перезагрузка отменена. Скрипт завершён.${RESET}"
