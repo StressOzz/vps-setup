@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v3.4"
+VERSION="v3.5"
 
 clear
 
@@ -66,7 +66,7 @@ if [[ -n "$NEW_SSH_PORT" ]]; then
     fi
 else
     NEW_SSH_PORT=$(grep ^Port /etc/ssh/sshd_config | awk '{print $2}')
-    echo -e "${GREEN}✅ SSH порт оставлен без изменений (${YELLOW}$NEW_SSH_PORT${RESET}).${RESET}"
+    echo -e "${GREEN}✅ SSH порт оставлен без изменений.${RESET}"
 fi
 
 # 🔑 Смена root-пароля
