@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v2.5"
+VERSION="v2.6"
 
 clear
 
@@ -24,7 +24,7 @@ echo "░  ░  ░    ░        ░░   ░    ░   ░  ░  ░  ░  ░ 
 echo "      ░              ░        ░  ░      ░        ░  "
 echo ""
 
-echo -e "${CYAN}Версия скрипта: ${VERSION}${RESET}"
+echo -e "Версия скрипта: ${VERSION}"
 
 # 🔧 Обновление системы
 echo -e "\n${WHITE}🔹 Обновляем систему...${RESET}"
@@ -38,7 +38,6 @@ echo -e "\n${RED}🔹 Введите новый SSH порт (оставьте �
 read -r NEW_SSH_PORT
 if [[ -n "$NEW_SSH_PORT" ]]; then
     if [[ "$NEW_SSH_PORT" =~ ^[0-9]+$ && "$NEW_SSH_PORT" -ge 1 && "$NEW_SSH_PORT" -le 65535 ]]; then
-        echo -e "${WHITE}Меняем SSH порт на ${NEW_SSH_PORT}...${RESET}"
         sed -i "s/^#\?Port .*/Port $NEW_SSH_PORT/" /etc/ssh/sshd_config
         systemctl restart sshd && echo -e "${GREEN}✅ SSH порт изменён на ${NEW_SSH_PORT}.${RESET}" || echo -e "${RED}⚠️ Не удалось перезапустить SSH!${RESET}"
     else
@@ -54,7 +53,6 @@ fi
 echo -e "\n${RED}🔹 Введите новый пароль root (оставьте пустым, чтобы не менять):${RESET} \c"
 read -rs NEW_ROOT_PASS
 if [[ -n "$NEW_ROOT_PASS" ]]; then
-    echo -e "\n${WHITE}Устанавливаем новый пароль root...${RESET}"
     echo "root:$NEW_ROOT_PASS" | chpasswd
     echo -e "${GREEN}✅ Пароль root изменён.${RESET}"
 else
@@ -68,7 +66,7 @@ if ! grep -q "net.ipv4.icmp_echo_ignore_all" /etc/sysctl.conf; then
     sysctl -p >/dev/null 2>&1
     echo -e "${GREEN}✅ Пинг (ICMP echo-request) отключён.${RESET}"
 else
-    echo -e "${CYAN}ℹ️ Пинг уже был отключён ранее.${RESET}"
+    echo -e "${GREEN}✅ Пинг уже был отключён ранее.${RESET}"
 fi
 
 # 🧾 Итог
