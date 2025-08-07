@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.0"
+VERSION="v1.1"
 
 # Очистка экрана
 clear
