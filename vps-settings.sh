@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v2.8"
+VERSION="v2.9"
 
 clear
 
@@ -46,7 +46,8 @@ echo "░  ░  ░    ░        ░░   ░    ░   ░  ░  ░  ░  ░ 
 echo "      ░              ░        ░  ░      ░        ░  "
 echo ""
 
-echo -e "${GREEN}✅ Система обновлена.${RESET}"
+echo -e "\n${GREEN}✅ Система обновлена.${RESET}"
+echo ""
 
 # 🔐 Изменение SSH порта
 echo -e "${WHITE}🔹Изменяем порт SSH${RESET}"
@@ -66,6 +67,7 @@ else
 fi
 
 # 🔑 Смена root-пароля
+echo ""
 echo -e "${WHITE}🔹Изменяем пароль root${RESET}"
 echo -e "\n${RED}Введите новый пароль root (оставьте пустым, чтобы не менять):${RESET} \c"
 read -rs NEW_ROOT_PASS
@@ -75,35 +77,35 @@ if [[ -n "$NEW_ROOT_PASS" ]]; then
 else
     echo -e "\n${CYAN}ℹ️ Пароль root оставлен без изменений.${RESET}"
 fi
-
+echo ""
 # 🚫 Отключение ICMP
 if ! grep -q "net.ipv4.icmp_echo_ignore_all" /etc/sysctl.conf; then
     echo "net.ipv4.icmp_echo_ignore_all = 1" >> /etc/sysctl.conf
     sysctl -p >/dev/null 2>&1
-    echo -e "${GREEN}✅ Пинг (ICMP echo-request) отключён.${RESET}"
+    echo -e "\n${GREEN}✅ Пинг (ICMP echo-request) отключён.${RESET}"
 else
-    echo -e "${GREEN}✅ Пинг уже был отключён ранее.${RESET}"
+    echo -e "\n${GREEN}✅ Пинг уже был отключён ранее.${RESET}"
 fi
 
 # 🧾 Итог
 IP_ADDR=$(curl -s https://ipinfo.io/ip)
 echo -e "\n${GREEN}✅ Все настройки выполнены!${RESET}"
 echo -e "${WHITE}==============================${RESET}"
-echo -e "🌐 ${CYAN}IP сервера:${RESET}     ${WHITE}$IP_ADDR${RESET}"
-echo -e "📡 ${CYAN}Порт SSH:${RESET}       ${WHITE}$NEW_SSH_PORT${RESET}"
-[[ -n "$NEW_ROOT_PASS" ]] && echo -e "🔑 ${CYAN}Пароль root:${RESET}    ${WHITE}$NEW_ROOT_PASS${RESET}"
+echo -e "🌐 ${CYAN}IP сервера:${RESET}     ${YELLOW}$IP_ADDR${RESET}"
+echo -e "📡 ${CYAN}Порт SSH:${RESET}       ${YELLOW}$NEW_SSH_PORT${RESET}"
+[[ -n "$NEW_ROOT_PASS" ]] && echo -e "🔑 ${CYAN}Пароль root:${RESET}    ${YELLOW}$NEW_ROOT_PASS${RESET}"
 echo -e "${WHITE}==============================${RESET}"
 
 # 🔁 Перезагрузка
 echo -e "\n${RED}Перезагрузить систему сейчас? (y/N):${RESET} \c"
 read -r REBOOT
 if [[ "$REBOOT" =~ ^[Yy]$ ]]; then
-    echo -e "${WHITE}Перезагрузка через:${RESET}"
+    echo -e "${YELLOW}Перезагрузка через:${RESET}"
     for i in {5..1}; do
         echo -ne "${CYAN} $i...${RESET} "
         sleep 1.5
     done
-    echo -e "\n${RED}🚀 Перезагрузка...${RESET}"
+    echo -e "\n${PURPLE}🚀 Перезагрузка...${RESET}"
     reboot
 else
     echo -e "${CYAN}Перезагрузка отменена. Скрипт завершён.${RESET}"
