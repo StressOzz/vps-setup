@@ -63,7 +63,7 @@ if [[ -n "$NEW_SSH_PORT" ]]; then
     fi
 else
     NEW_SSH_PORT=$(grep ^Port /etc/ssh/sshd_config | awk '{print $2}')
-    echo -e "${CYAN}ℹ️ SSH порт оставлен без изменений (${NEW_SSH_PORT}).${RESET}"
+    echo -e "${CYAN}✅ SSH порт оставлен без изменений (${NEW_SSH_PORT}).${RESET}"
 fi
 
 # 🔑 Смена root-пароля
@@ -73,9 +73,9 @@ echo -e "\n${RED}Введите новый пароль root (оставьте �
 read -rs NEW_ROOT_PASS
 if [[ -n "$NEW_ROOT_PASS" ]]; then
     echo "root:$NEW_ROOT_PASS" | chpasswd
-    echo -e "${GREEN}✅ Пароль root изменён.${RESET}"
+    echo -e "\n${GREEN}✅ Пароль root изменён.${RESET}"
 else
-    echo -e "\n${CYAN}ℹ️ Пароль root оставлен без изменений.${RESET}"
+    echo -e "\n${CYAN}✅ Пароль root оставлен без изменений.${RESET}"
 fi
 echo ""
 # 🚫 Отключение ICMP
