@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v2.9"
+VERSION="v3.0"
 
 clear
 
@@ -63,7 +63,7 @@ if [[ -n "$NEW_SSH_PORT" ]]; then
     fi
 else
     NEW_SSH_PORT=$(grep ^Port /etc/ssh/sshd_config | awk '{print $2}')
-    echo -e "${CYAN}✅ SSH порт оставлен без изменений (${NEW_SSH_PORT}).${RESET}"
+    echo -e "${GREEN}✅ SSH порт оставлен без изменений (${NEW_SSH_PORT}).${RESET}"
 fi
 
 # 🔑 Смена root-пароля
@@ -75,7 +75,7 @@ if [[ -n "$NEW_ROOT_PASS" ]]; then
     echo "root:$NEW_ROOT_PASS" | chpasswd
     echo -e "\n${GREEN}✅ Пароль root изменён.${RESET}"
 else
-    echo -e "\n${CYAN}✅ Пароль root оставлен без изменений.${RESET}"
+    echo -e "\n${GREEN}✅ Пароль root оставлен без изменений.${RESET}"
 fi
 echo ""
 # 🚫 Отключение ICMP
@@ -90,6 +90,7 @@ fi
 # 🧾 Итог
 IP_ADDR=$(curl -s https://ipinfo.io/ip)
 echo -e "\n${GREEN}✅ Все настройки выполнены!${RESET}"
+echo ""
 echo -e "${WHITE}==============================${RESET}"
 echo -e "🌐 ${CYAN}IP сервера:${RESET}     ${YELLOW}$IP_ADDR${RESET}"
 echo -e "📡 ${CYAN}Порт SSH:${RESET}       ${YELLOW}$NEW_SSH_PORT${RESET}"
