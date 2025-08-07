@@ -79,7 +79,7 @@ if [[ -n "$NEW_ROOT_PASS" ]]; then
 else
     echo -e "\n${GREEN}✅ Пароль root оставлен без изменений.${RESET}"
 fi
-echo ""
+
 # 🚫 Отключение ICMP
 if ! grep -q "net.ipv4.icmp_echo_ignore_all" /etc/sysctl.conf; then
     echo "net.ipv4.icmp_echo_ignore_all = 1" >> /etc/sysctl.conf
