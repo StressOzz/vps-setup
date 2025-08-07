@@ -109,14 +109,13 @@ if [[ "$REBOOT" =~ ^[Yy]$ ]]; then
     echo -e "${YELLOW}Перезагрузка через:${RESET}"
     for i in {5..1}; do
         echo -ne "${CYAN} $i${RESET} "
-        sleep 1.5
+        sleep 1
     done
 echo ""
     echo -e "\n${PURPLE}🚀 Перезагрузка...${RESET}"
 echo ""
     reboot
 else
-    echo -e "${CYAN}Перезагрузка отменена.${RESET}"
     echo -e "${GREEN}✅ Скрипт завершён.${RESET}"
 echo ""
 fi
