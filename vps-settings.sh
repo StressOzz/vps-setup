@@ -27,14 +27,14 @@ echo ""
 echo -e "${CYAN}Версия скрипта: ${VERSION}${RESET}"
 
 # 🔧 Обновление системы
-echo -e "\n${WHITE}1️⃣ Обновляем систему...${RESET}"
+echo -e "\n${WHITE}🔹 Обновляем систему...${RESET}"
 apt update && apt install -y sudo >/dev/null 2>&1
 sudo apt update && sudo apt list --upgradable && sudo apt full-upgrade -y >/dev/null 2>&1
 echo -e "${GREEN}✅ Система обновлена.${RESET}"
 
 
 # 🔐 Изменение SSH порта
-echo -e "\n${RED}2️⃣ Введите новый SSH порт (оставьте пустым, чтобы не менять):${RESET} \c"
+echo -e "\n${RED}🔹 Введите новый SSH порт (оставьте пустым, чтобы не менять):${RESET} \c"
 read -r NEW_SSH_PORT
 if [[ -n "$NEW_SSH_PORT" ]]; then
     if [[ "$NEW_SSH_PORT" =~ ^[0-9]+$ && "$NEW_SSH_PORT" -ge 1 && "$NEW_SSH_PORT" -le 65535 ]]; then
@@ -51,7 +51,7 @@ else
 fi
 
 # 🔑 Смена root-пароля
-echo -e "\n${RED}3️⃣ Введите новый пароль root (оставьте пустым, чтобы не менять):${RESET} \c"
+echo -e "\n${RED}🔹 Введите новый пароль root (оставьте пустым, чтобы не менять):${RESET} \c"
 read -rs NEW_ROOT_PASS
 if [[ -n "$NEW_ROOT_PASS" ]]; then
     echo -e "\n${WHITE}Устанавливаем новый пароль root...${RESET}"
@@ -62,7 +62,7 @@ else
 fi
 
 # 🚫 Отключение ICMP
-echo -e "\n${WHITE}4️⃣ Отключаем пинг (ICMP echo-request)...${RESET}"
+echo -e "\n${WHITE}🔹 Отключаем пинг (ICMP echo-request)...${RESET}"
 if ! grep -q "net.ipv4.icmp_echo_ignore_all" /etc/sysctl.conf; then
     echo "net.ipv4.icmp_echo_ignore_all = 1" >> /etc/sysctl.conf
     sysctl -p >/dev/null 2>&1
