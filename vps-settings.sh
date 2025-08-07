@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v2.3"
+VERSION="v2.4"
 
 clear
 
@@ -24,21 +24,25 @@ echo "░  ░  ░    ░        ░░   ░    ░   ░  ░  ░  ░  ░ 
 echo "      ░              ░        ░  ░      ░        ░  "
 echo ""
 
-echo -e "${CYAN}Версия скрипта: v2.2${RESET}"
+echo -e "${CYAN}Версия скрипта: ${VERSION}${RESET}"
 
 # 🔧 Обновление системы
 echo -e "\n${WHITE}1️⃣ Обновляем систему...${RESET}"
-apt update -y && apt upgrade -y && apt install -y sudo >/dev/null 2>&1
+apt update >/dev/null && apt upgrade -y >/dev/null && apt install -y sudo >/dev/null
 echo -e "${GREEN}✅ Система обновлена.${RESET}"
 
 # 🔐 Изменение SSH порта
 echo -e "\n${RED}2️⃣ Введите новый SSH порт (оставьте пустым, чтобы не менять):${RESET} \c"
 read -r NEW_SSH_PORT
 if [[ -n "$NEW_SSH_PORT" ]]; then
-    echo -e "${WHITE}Меняем SSH порт на ${NEW_SSH_PORT}...${RESET}"
-    sed -i "s/^#\?Port .*/Port $NEW_SSH_PORT/" /etc/ssh/sshd_config
-    systemctl restart sshd
-    echo -e "${GREEN}✅ SSH порт изменён на ${NEW_SSH_PORT}.${RESET}"
+    if [[ "$NEW_SSH_PORT" =~ ^[0-9]+$ && "$NEW_SSH_PORT" -ge 1 && "$NEW_SSH_PORT" -le 65535 ]]; then
+        echo -e "${WHITE}Меняем SSH порт на ${NEW_SSH_PORT}...${RESET}"
+        sed -i "s/^#\?Port .*/Port $NEW_SSH_PORT/" /etc/ssh/sshd_config
+        systemctl restart sshd && echo -e "${GREEN}✅ SSH порт изменён на ${NEW_SSH_PORT}.${RESET}" || echo -e "${RED}⚠️ Не удалось перезапустить SSH!${RESET}"
+    else
+        echo -e "${RED}❌ Некорректный порт. Изменения отменены.${RESET}"
+        NEW_SSH_PORT=$(grep ^Port /etc/ssh/sshd_config | awk '{print $2}')
+    fi
 else
     NEW_SSH_PORT=$(grep ^Port /etc/ssh/sshd_config | awk '{print $2}')
     echo -e "${CYAN}ℹ️ SSH порт оставлен без изменений (${NEW_SSH_PORT}).${RESET}"
@@ -57,12 +61,16 @@ fi
 
 # 🚫 Отключение ICMP
 echo -e "\n${WHITE}4️⃣ Отключаем пинг (ICMP echo-request)...${RESET}"
-echo "net.ipv4.icmp_echo_ignore_all = 1" >> /etc/sysctl.conf
-sysctl -p >/dev/null 2>&1
-echo -e "${GREEN}✅ Пинг (ICMP echo-request) отключён.${RESET}"
+if ! grep -q "net.ipv4.icmp_echo_ignore_all" /etc/sysctl.conf; then
+    echo "net.ipv4.icmp_echo_ignore_all = 1" >> /etc/sysctl.conf
+    sysctl -p >/dev/null 2>&1
+    echo -e "${GREEN}✅ Пинг (ICMP echo-request) отключён.${RESET}"
+else
+    echo -e "${CYAN}ℹ️ Пинг уже был отключён ранее.${RESET}"
+fi
 
 # 🧾 Итог
-IP_ADDR=$(curl -s ifconfig.me)
+IP_ADDR=$(curl -s https://ipinfo.io/ip)
 echo -e "\n${GREEN}✅ Все настройки выполнены!${RESET}"
 echo -e "${WHITE}==============================${RESET}"
 echo -e "🌐 ${CYAN}IP сервера:${RESET}     ${WHITE}$IP_ADDR${RESET}"
