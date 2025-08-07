@@ -90,6 +90,29 @@ else
     echo "ℹ️ IPv6 оставлен включённым"
 fi
 
+echo -ne "${GREEN}📵 Отключить отклик на ping (ICMP Echo)? (Y/n, по умолчанию Y): ${NC}"
+read DISABLE_PING
+DISABLE_PING=${DISABLE_PING:-Y}
+
+if [[ "$DISABLE_PING" =~ ^[Yy]$ ]]; then
+    echo "📵 Отключаем пинг через nftables..."
+
+    if ! nft list table inet filter &>/dev/null; then
+        nft add table inet filter
+    fi
+
+    if ! nft list chain inet filter input &>/dev/null; then
+        nft add chain inet filter input { type filter hook input priority 0 \; policy accept \; }
+    fi
+
+    nft add rule inet filter input ip protocol icmp icmp type echo-request drop 2>/dev/null || true
+    nft add rule inet filter input ip6 nexthdr icmpv6 icmpv6 type echo-request drop 2>/dev/null || true
+
+    echo "✅ Пинг отключён (ICMP Echo-запросы блокируются)"
+else
+    echo "ℹ️ Пинг оставлен включённым"
+fi
+
 echo -ne "${GREEN}🔑 Хотите сменить пароль пользователя для SSH? (Y/n, по умолчанию Y): ${NC}"
 read CHANGE_PASS
 CHANGE_PASS=${CHANGE_PASS:-Y}
@@ -114,6 +137,7 @@ echo -e "\n🎉 Всё готово:"
 echo "────────────────────────────────────────────"
 echo " ✅ SSH перенесён на порт: $SSH_PORT"
 [[ "$DISABLE_IPV6" =~ ^[Yy]$ ]] && echo " ✅ IPv6 отключён"
+[[ "$DISABLE_PING" =~ ^[Yy]$ ]] && echo " ✅ Пинг отключён"
 [[ "$CHANGE_PASS" =~ ^[Yy]$ ]] && echo " ✅ Пароль пользователя '$TARGET_USER' обновлён"
 echo "────────────────────────────────────────────"
 
