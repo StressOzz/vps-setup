@@ -17,4 +17,4 @@
 ## 📦 Быстрый старт
 
 ```bash
-bash <(curl -sSL https://raw.githubusercontent.com/StressOzz/vps-setup/main/vps-setup.sh)
+bash <(curl -sSL https://raw.githubusercontent.com/StressOzz/vps-setup/main/vps-settings.sh)
