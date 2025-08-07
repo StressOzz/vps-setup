@@ -92,10 +92,15 @@ echo -e "📡 ${CYAN}Порт SSH:${RESET}       ${WHITE}$NEW_SSH_PORT${RESET}"
 echo -e "${WHITE}==============================${RESET}"
 
 # 🔁 Перезагрузка
-echo -e "\n${RED}Перезагрузить систему сейчас? (Y/n):${RESET} \c"
+echo -e "\n${RED}Перезагрузить систему сейчас? (y/N):${RESET} \c"
 read -r REBOOT
-if [[ "$REBOOT" =~ ^[Yy]$ || -z "$REBOOT" ]]; then
-    echo -e "${WHITE}Перезагрузка...${RESET}"
+if [[ "$REBOOT" =~ ^[Yy]$ ]]; then
+    echo -e "${WHITE}Перезагрузка через:${RESET}"
+    for i in {5..1}; do
+        echo -ne "${CYAN}  $i...${RESET}\r"
+        sleep 1.5
+    done
+    echo -e "\n${RED}🚀 Перезагрузка...${RESET}"
     reboot
 else
     echo -e "${CYAN}Перезагрузка отменена. Скрипт завершён.${RESET}"
