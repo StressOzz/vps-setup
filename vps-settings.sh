@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v3.0"
+VERSION="v3.1"
 
 clear
 
@@ -29,7 +29,9 @@ echo ""
 echo -e "Версия скрипта: ${VERSION}"
 
 # 🔧 Обновление системы
-echo -e "\n${RED}🔹 Обновляем систему...${RESET}"
+echo -e "\n${PURPLE}🔹 Обновляем систему...${RESET}"
+echo ""
+echo ""
 apt update && apt install -y sudo >/dev/null 2>&1
 sudo apt update && sudo apt list --upgradable && sudo apt full-upgrade -y >/dev/null 2>&1
 
@@ -112,4 +114,5 @@ echo ""
     reboot
 else
     echo -e "${CYAN}Перезагрузка отменена. Скрипт завершён.${RESET}"
+echo ""
 fi
