@@ -27,7 +27,7 @@ echo ""
 echo -e "Версия скрипта: ${VERSION}"
 
 # 🔧 Обновление системы
-echo -e "\n${WHITE}🔹 Обновляем систему...${RESET}"
+echo -e "\n${RED}🔹 Обновляем систему...${RESET}"
 apt update && apt install -y sudo >/dev/null 2>&1
 sudo apt update && sudo apt list --upgradable && sudo apt full-upgrade -y >/dev/null 2>&1
 
