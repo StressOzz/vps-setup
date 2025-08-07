@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v2.0"
+VERSION="v2.1"
 
 clear
 
@@ -32,7 +32,7 @@ sudo apt list --upgradable || true
 sudo apt full-upgrade -y
 echo -e "${GREEN}✅ Система обновлена.${NC}\n"
 
-# 2. Вопрос про смену SSH-порта
+# 2. Ввод нового SSH-порта
 read -rp "$(echo -e ${GREEN}2️⃣ Введите новый SSH порт (оставьте пустым, чтобы не менять):${NC} )" PORT
 if [ -n "$PORT" ]; then
   while ! [[ "$PORT" =~ ^[0-9]+$ ]] || [ "$PORT" -lt 1 ] || [ "$PORT" -gt 65535 ]; do
@@ -40,15 +40,18 @@ if [ -n "$PORT" ]; then
     read -rp "$(echo -e ${GREEN}Введите новый SSH порт (оставьте пустым, чтобы не менять):${NC} )" PORT
   done
   echo -e "${GREEN}Меняем SSH порт на ${CYAN}${PORT}${NC}...${NC}"
-  sudo sed -i "s/^#Port 22/Port $PORT/" /etc/ssh/sshd_config
-  sudo sed -i "s/^Port .*/Port $PORT/" /etc/ssh/sshd_config
+  if grep -q "^Port " /etc/ssh/sshd_config; then
+    sudo sed -i "s/^Port .*/Port $PORT/" /etc/ssh/sshd_config
+  else
+    echo "Port $PORT" | sudo tee -a /etc/ssh/sshd_config > /dev/null
+  fi
   sudo systemctl restart sshd
   echo -e "${GREEN}✅ SSH порт изменён на ${CYAN}${PORT}${NC}.${NC}\n"
 else
   echo -e "${GREEN}SSH порт оставлен без изменений.${NC}\n"
 fi
 
-# 3. Вопрос про смену пароля root
+# 3. Ввод нового пароля root
 read -rsp "$(echo -e ${GREEN}3️⃣ Введите новый пароль root (оставьте пустым, чтобы не менять):${NC} )" PASS
 echo
 if [ -n "$PASS" ]; then
