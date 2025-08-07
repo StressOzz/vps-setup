@@ -116,6 +116,7 @@ echo ""
 echo ""
     reboot
 else
-    echo -e "${CYAN}Перезагрузка отменена. Скрипт завершён.${RESET}"
+    echo -e "${CYAN}Перезагрузка отменена.${RESET}"
+    echo -e "${GREEN}✅ Скрипт завершён.${RESET}"
 echo ""
 fi
