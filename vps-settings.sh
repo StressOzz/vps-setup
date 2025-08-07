@@ -1,13 +1,16 @@
 #!/bin/bash
 set -e
 
-VERSION="v2.2"
+VERSION="v2.3"
 
 clear
 
+# Цвета
 GREEN='\033[1;32m'
 CYAN='\033[1;36m'
-NC='\033[0m'
+WHITE='\033[1;37m'
+RED='\033[1;91m'
+RESET='\033[0m'
 
 echo ""
 echo "  ██████ ▄▄▄█████▓ ██▀███  ▓█████   ██████   ██████ "
@@ -21,85 +24,58 @@ echo "░  ░  ░    ░        ░░   ░    ░   ░  ░  ░  ░  ░ 
 echo "      ░              ░        ░  ░      ░        ░  "
 echo ""
 
-echo -e "${GREEN}Версия скрипта: $VERSION${NC}"
+echo -e "${CYAN}Версия скрипта: v2.2${RESET}"
 
-# 1. Обновление системы
-echo -e "${GREEN}1️⃣ Обновляем систему...${NC}"
-apt update
-apt install -y sudo
-sudo apt update
-sudo apt list --upgradable || true
-sudo apt full-upgrade -y
-echo -e "${GREEN}✅ Система обновлена.${NC}\n"
+# 🔧 Обновление системы
+echo -e "\n${WHITE}1️⃣ Обновляем систему...${RESET}"
+apt update -y && apt upgrade -y && apt install -y sudo >/dev/null 2>&1
+echo -e "${GREEN}✅ Система обновлена.${RESET}"
 
-# 2. Вопрос про смену SSH-порта
-echo -ne "${GREEN}2️⃣ Введите новый SSH порт (оставьте пустым, чтобы не менять): ${NC}"
-read -r PORT
-if [ -n "$PORT" ]; then
-  while ! [[ "$PORT" =~ ^[0-9]+$ ]] || [ "$PORT" -lt 1 ] || [ "$PORT" -gt 65535 ]; do
-    echo -e "${GREEN}Ошибка: введите корректный числовой порт от 1 до 65535.${NC}"
-    echo -ne "${GREEN}Введите новый SSH порт (оставьте пустым, чтобы не менять): ${NC}"
-    read -r PORT
-  done
-  echo -e "${GREEN}Меняем SSH порт на ${CYAN}${PORT}${NC}...${NC}"
-  sudo sed -i "s/^#Port 22/Port $PORT/" /etc/ssh/sshd_config
-  sudo sed -i "s/^Port .*/Port $PORT/" /etc/ssh/sshd_config
-  sudo systemctl restart sshd
-  echo -e "${GREEN}✅ SSH порт изменён на ${CYAN}${PORT}${NC}.${NC}\n"
+# 🔐 Изменение SSH порта
+echo -e "\n${RED}2️⃣ Введите новый SSH порт (оставьте пустым, чтобы не менять):${RESET} \c"
+read -r NEW_SSH_PORT
+if [[ -n "$NEW_SSH_PORT" ]]; then
+    echo -e "${WHITE}Меняем SSH порт на ${NEW_SSH_PORT}...${RESET}"
+    sed -i "s/^#\?Port .*/Port $NEW_SSH_PORT/" /etc/ssh/sshd_config
+    systemctl restart sshd
+    echo -e "${GREEN}✅ SSH порт изменён на ${NEW_SSH_PORT}.${RESET}"
 else
-  echo -e "${GREEN}SSH порт оставлен без изменений.${NC}\n"
+    NEW_SSH_PORT=$(grep ^Port /etc/ssh/sshd_config | awk '{print $2}')
+    echo -e "${CYAN}ℹ️ SSH порт оставлен без изменений (${NEW_SSH_PORT}).${RESET}"
 fi
 
-# 3. Вопрос про смену пароля root
-echo -ne "${GREEN}3️⃣ Введите новый пароль root (оставьте пустым, чтобы не менять): ${NC}"
-read -rs PASS
-echo
-if [ -n "$PASS" ]; then
-  echo -e "${GREEN}Устанавливаем новый пароль root...${NC}"
-  echo "root:$PASS" | sudo chpasswd
-  echo -e "${GREEN}✅ Пароль root изменён.${NC}\n"
+# 🔑 Смена root-пароля
+echo -e "\n${RED}3️⃣ Введите новый пароль root (оставьте пустым, чтобы не менять):${RESET} \c"
+read -rs NEW_ROOT_PASS
+if [[ -n "$NEW_ROOT_PASS" ]]; then
+    echo -e "\n${WHITE}Устанавливаем новый пароль root...${RESET}"
+    echo "root:$NEW_ROOT_PASS" | chpasswd
+    echo -e "${GREEN}✅ Пароль root изменён.${RESET}"
 else
-  echo -e "${GREEN}Пароль root оставлен без изменений.${NC}\n"
+    echo -e "\n${CYAN}ℹ️ Пароль root оставлен без изменений.${RESET}"
 fi
 
-# 4. Отключение пинга
-echo -e "${GREEN}4️⃣ Отключаем пинг (ICMP echo-request)...${NC}"
-sudo nft add table inet filter 2>/dev/null || true
-sudo nft add chain inet filter input '{ type filter hook input priority 0; policy accept; }' 2>/dev/null || true
-sudo nft add rule inet filter input icmp type echo-request drop
-sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null
-sudo systemctl enable nftables
-sudo mkdir -p /etc/systemd/system/nftables.service.d
-echo -e '[Service]\nExecStart=\nExecStart=/usr/sbin/nft -f /etc/nftables.conf' | sudo tee /etc/systemd/system/nftables.service.d/override.conf > /dev/null
-sudo systemctl daemon-reexec
-sudo systemctl restart nftables
-echo -e "${GREEN}✅ Пинг (ICMP echo-request) отключён.${NC}\n"
+# 🚫 Отключение ICMP
+echo -e "\n${WHITE}4️⃣ Отключаем пинг (ICMP echo-request)...${RESET}"
+echo "net.ipv4.icmp_echo_ignore_all = 1" >> /etc/sysctl.conf
+sysctl -p >/dev/null 2>&1
+echo -e "${GREEN}✅ Пинг (ICMP echo-request) отключён.${RESET}"
 
-# 5. Итоговая информация
-IP=$(hostname -I | tr ' ' '\n' | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | head -n1)
-echo -e "${GREEN}✅ Все настройки выполнены!${NC}"
-echo -e "${GREEN}=============================="
-echo -e "🌐 IP сервера: ${CYAN}${IP}${NC}"
-if [ -n "$PORT" ]; then
-  echo -e "📦 Порт SSH:   ${CYAN}${PORT}${NC}"
-else
-  echo -e "📦 Порт SSH:   ${CYAN}оставлен прежним${NC}"
-fi
-if [ -n "$PASS" ]; then
-  echo -e "🔑 Пароль root: ${CYAN}${PASS}${NC}"
-else
-  echo -e "🔑 Пароль root: ${CYAN}оставлен прежним${NC}"
-fi
-echo -e "==============================${NC}"
+# 🧾 Итог
+IP_ADDR=$(curl -s ifconfig.me)
+echo -e "\n${GREEN}✅ Все настройки выполнены!${RESET}"
+echo -e "${WHITE}==============================${RESET}"
+echo -e "🌐 ${CYAN}IP сервера:${RESET}     ${WHITE}$IP_ADDR${RESET}"
+echo -e "📡 ${CYAN}Порт SSH:${RESET}       ${WHITE}$NEW_SSH_PORT${RESET}"
+[[ -n "$NEW_ROOT_PASS" ]] && echo -e "🔑 ${CYAN}Пароль root:${RESET}    ${WHITE}$NEW_ROOT_PASS${RESET}"
+echo -e "${WHITE}==============================${RESET}"
 
-# 6. Перезагрузка
-echo -ne "${GREEN}Перезагрузить систему сейчас? (Y/n): ${NC}"
-read -r REBOOT_ANSWER
-REBOOT_ANSWER=${REBOOT_ANSWER:-Y}
-
-if [[ "$REBOOT_ANSWER" =~ ^[Yy]$ ]]; then
-    echo -e "${GREEN}Перезагрузка...${NC}"
-    sudo reboot
+# 🔁 Перезагрузка
+echo -e "\n${RED}Перезагрузить систему сейчас? (Y/n):${RESET} \c"
+read -r REBOOT
+if [[ "$REBOOT" =~ ^[Yy]$ || -z "$REBOOT" ]]; then
+    echo -e "${WHITE}Перезагрузка...${RESET}"
+    reboot
 else
-    echo -e "${GREEN}Перезагрузка отменена. Скрипт завершён.${NC}"
+    echo -e "${CYAN}Перезагрузка отменена. Скрипт завершён.${RESET}"
 fi
