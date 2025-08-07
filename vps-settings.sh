@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v3.3"
+VERSION="v3.4"
 
 clear
 
@@ -59,14 +59,14 @@ read -r NEW_SSH_PORT
 if [[ -n "$NEW_SSH_PORT" ]]; then
     if [[ "$NEW_SSH_PORT" =~ ^[0-9]+$ && "$NEW_SSH_PORT" -ge 1 && "$NEW_SSH_PORT" -le 65535 ]]; then
         sed -i "s/^#\?Port .*/Port $NEW_SSH_PORT/" /etc/ssh/sshd_config
-        systemctl restart sshd && echo -e "${GREEN}✅ SSH порт изменён на ${NEW_SSH_PORT}.${RESET}" || echo -e "${RED}⚠️ Не удалось перезапустить SSH!${RESET}"
+        systemctl restart sshd && echo -e "${GREEN}✅ SSH порт изменён.${RESET}" || echo -e "${RED}⚠️ Не удалось перезапустить SSH!${RESET}"
     else
         echo -e "${RED}❌ Некорректный порт. Изменения отменены.${RESET}"
         NEW_SSH_PORT=$(grep ^Port /etc/ssh/sshd_config | awk '{print $2}')
     fi
 else
     NEW_SSH_PORT=$(grep ^Port /etc/ssh/sshd_config | awk '{print $2}')
-    echo -e "${GREEN}✅ SSH порт оставлен без изменений (${NEW_SSH_PORT}).${RESET}"
+    echo -e "${GREEN}✅ SSH порт оставлен без изменений (${YELLOW}$NEW_SSH_PORT${RESET}).${RESET}"
 fi
 
 # 🔑 Смена root-пароля
