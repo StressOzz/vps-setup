@@ -106,7 +106,7 @@ read -r REBOOT
 if [[ "$REBOOT" =~ ^[Yy]$ ]]; then
     echo -e "${YELLOW}Перезагрузка через:${RESET}"
     for i in {5..1}; do
-        echo -ne "${CYAN} $i...${RESET} "
+        echo -ne "${CYAN} $i${RESET} "
         sleep 1.5
     done
 echo ""
