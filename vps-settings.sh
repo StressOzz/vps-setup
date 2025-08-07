@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v2.1"
+VERSION="v2.2"
 
 clear
 
@@ -32,27 +32,27 @@ sudo apt list --upgradable || true
 sudo apt full-upgrade -y
 echo -e "${GREEN}✅ Система обновлена.${NC}\n"
 
-# 2. Ввод нового SSH-порта
-read -rp "$(echo -e ${GREEN}2️⃣ Введите новый SSH порт (оставьте пустым, чтобы не менять):${NC} )" PORT
+# 2. Вопрос про смену SSH-порта
+echo -ne "${GREEN}2️⃣ Введите новый SSH порт (оставьте пустым, чтобы не менять): ${NC}"
+read -r PORT
 if [ -n "$PORT" ]; then
   while ! [[ "$PORT" =~ ^[0-9]+$ ]] || [ "$PORT" -lt 1 ] || [ "$PORT" -gt 65535 ]; do
     echo -e "${GREEN}Ошибка: введите корректный числовой порт от 1 до 65535.${NC}"
-    read -rp "$(echo -e ${GREEN}Введите новый SSH порт (оставьте пустым, чтобы не менять):${NC} )" PORT
+    echo -ne "${GREEN}Введите новый SSH порт (оставьте пустым, чтобы не менять): ${NC}"
+    read -r PORT
   done
   echo -e "${GREEN}Меняем SSH порт на ${CYAN}${PORT}${NC}...${NC}"
-  if grep -q "^Port " /etc/ssh/sshd_config; then
-    sudo sed -i "s/^Port .*/Port $PORT/" /etc/ssh/sshd_config
-  else
-    echo "Port $PORT" | sudo tee -a /etc/ssh/sshd_config > /dev/null
-  fi
+  sudo sed -i "s/^#Port 22/Port $PORT/" /etc/ssh/sshd_config
+  sudo sed -i "s/^Port .*/Port $PORT/" /etc/ssh/sshd_config
   sudo systemctl restart sshd
   echo -e "${GREEN}✅ SSH порт изменён на ${CYAN}${PORT}${NC}.${NC}\n"
 else
   echo -e "${GREEN}SSH порт оставлен без изменений.${NC}\n"
 fi
 
-# 3. Ввод нового пароля root
-read -rsp "$(echo -e ${GREEN}3️⃣ Введите новый пароль root (оставьте пустым, чтобы не менять):${NC} )" PASS
+# 3. Вопрос про смену пароля root
+echo -ne "${GREEN}3️⃣ Введите новый пароль root (оставьте пустым, чтобы не менять): ${NC}"
+read -rs PASS
 echo
 if [ -n "$PASS" ]; then
   echo -e "${GREEN}Устанавливаем новый пароль root...${NC}"
@@ -94,7 +94,7 @@ echo -e "==============================${NC}"
 
 # 6. Перезагрузка
 echo -ne "${GREEN}Перезагрузить систему сейчас? (Y/n): ${NC}"
-read REBOOT_ANSWER
+read -r REBOOT_ANSWER
 REBOOT_ANSWER=${REBOOT_ANSWER:-Y}
 
 if [[ "$REBOOT_ANSWER" =~ ^[Yy]$ ]]; then
