@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v2.4"
+VERSION="v2.5"
 
 clear
 
@@ -28,8 +28,10 @@ echo -e "${CYAN}Версия скрипта: ${VERSION}${RESET}"
 
 # 🔧 Обновление системы
 echo -e "\n${WHITE}1️⃣ Обновляем систему...${RESET}"
-apt update >/dev/null && apt upgrade -y >/dev/null && apt install -y sudo >/dev/null
+apt update && apt install -y sudo >/dev/null 2>&1
+sudo apt update && sudo apt list --upgradable && sudo apt full-upgrade -y >/dev/null 2>&1
 echo -e "${GREEN}✅ Система обновлена.${RESET}"
+
 
 # 🔐 Изменение SSH порта
 echo -e "\n${RED}2️⃣ Введите новый SSH порт (оставьте пустым, чтобы не менять):${RESET} \c"
