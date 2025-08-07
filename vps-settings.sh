@@ -104,6 +104,7 @@ echo -e "\n${RED}Перезагрузить систему сейчас? (y/N):$
 echo ""
 read -r REBOOT
 if [[ "$REBOOT" =~ ^[Yy]$ ]]; then
+    echo ""
     echo -e "${YELLOW}Перезагрузка через:${RESET}"
     for i in {5..1}; do
         echo -ne "${CYAN} $i${RESET} "
