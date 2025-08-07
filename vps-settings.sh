@@ -99,6 +99,7 @@ echo -e "${WHITE}==============================${RESET}"
 
 # 🔁 Перезагрузка
 echo -e "\n${RED}Перезагрузить систему сейчас? (y/N):${RESET} \c"
+echo ""
 read -r REBOOT
 if [[ "$REBOOT" =~ ^[Yy]$ ]]; then
     echo -e "${YELLOW}Перезагрузка через:${RESET}"
@@ -106,6 +107,7 @@ if [[ "$REBOOT" =~ ^[Yy]$ ]]; then
         echo -ne "${CYAN} $i...${RESET} "
         sleep 1.5
     done
+echo ""
     echo -e "\n${PURPLE}🚀 Перезагрузка...${RESET}"
     reboot
 else
