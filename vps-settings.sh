@@ -7,20 +7,22 @@ clear
 GREEN='\033[1;32m'
 NC='\033[0m' # сброс цвета
 
+# 🎨 Красивый баннер
 echo ""
-echo "  ██████ ▄▄▄█████▓ ██▀███  ▓█████   ██████   ██████ "
-echo "▒██    ▒ ▓  ██▒ ▓▒▓██ ▒ ██▒▓█   ▀ ▒██    ▒ ▒██    ▒ "
-echo "░ ▓██▄   ▒ ▓██░ ▒░▓██ ░▄█ ▒▒███   ░ ▓██▄   ░ ▓██▄   "
-echo "  ▒   ██▒░ ▓██▓ ░ ▒██▀▀█▄  ▒▓█  ▄   ▒   ██▒  ▒   ██▒"
-echo "▒██████▒▒  ▒██▒ ░ ░██▓ ▒██▒░▒████▒▒██████▒▒▒██████▒▒"
-echo "▒ ▒▓▒ ▒ ░  ▒ ░░   ░ ▒▓ ░▒▓░░░ ▒░ ░▒ ▒▓▒ ▒ ░▒ ▒▓▒ ▒ ░"
-echo "░ ░▒  ░ ░    ░      ░▒ ░ ▒░ ░ ░  ░░ ░▒  ░ ░░ ░▒  ░ ░"
-echo "░  ░  ░    ░        ░░   ░    ░   ░  ░  ░  ░  ░  ░  "
-echo "      ░              ░        ░  ░      ░        ░  "
+echo "  ██████ ▄▄▄█████▓ ██▀███  ▓█████   ██████   ██████ ";
+echo "▒██    ▒ ▓  ██▒ ▓▒▓██ ▒ ██▒▓█   ▀ ▒██    ▒ ▒██    ▒ ";
+echo "░ ▓██▄   ▒ ▓██░ ▒░▓██ ░▄█ ▒▒███   ░ ▓██▄   ░ ▓██▄   ";
+echo "  ▒   ██▒░ ▓██▓ ░ ▒██▀▀█▄  ▒▓█  ▄   ▒   ██▒  ▒   ██▒";
+echo "▒██████▒▒  ▒██▒ ░ ░██▓ ▒██▒░▒████▒▒██████▒▒▒██████▒▒";
+echo "▒ ▒▓▒ ▒ ░  ▒ ░░   ░ ▒▓ ░▒▓░░░ ▒░ ░▒ ▒▓▒ ▒ ░▒ ▒▓▒ ▒ ░";
+echo "░ ░▒  ░ ░    ░      ░▒ ░ ▒░ ░ ░  ░░ ░▒  ░ ░░ ░▒  ░ ░";
+echo "░  ░  ░    ░        ░░   ░    ░   ░  ░  ░  ░  ░  ░  ";
+echo "      ░              ░        ░  ░      ░        ░  ";
+echo "                                                    ";
 echo ""
-
 echo -n "🚀 Запуск скрипта"; for i in {1..5}; do echo -n "."; sleep 0.3; done; echo -e "\n"
 
+# Проверка запуска от root
 if [ "$EUID" -ne 0 ]; then
   echo "⚠️ Пожалуйста, запустите скрипт с правами root или через sudo"
   exit 1
@@ -28,20 +30,58 @@ fi
 
 echo "⬆️ Проверяем и обновляем систему..."
 
+# Установка sudo (если нет)
 if ! command -v sudo &>/dev/null; then
   apt update
   apt install -y sudo
 fi
 
+# Обновление списка пакетов
 apt update
+
+# Показываем список обновляемых пакетов
 echo "📋 Список обновляемых пакетов:"
 apt list --upgradable || true
+
+# Полное обновление системы без вопросов
 apt full-upgrade -y
+
 echo "✅ Обновление системы завершено."
 
+# === ВВОД SSH-ПОРТА ===
 echo -ne "${GREEN}🔐 Введите новый SSH-порт (по умолчанию 22): ${NC}"
 read USER_PORT
 SSH_PORT="${USER_PORT:-22}"
+
+echo "📦 Установка и настройка nftables..."
+if ! command -v nft &>/dev/null; then
+    apt install -y nftables
+fi
+
+echo "🧹 Очистка старых правил..."
+nft flush ruleset
+
+echo "🛡 Создание таблицы и цепочек..."
+nft add table inet filter
+nft add chain inet filter input { type filter hook input priority 0 \; policy drop \; }
+
+echo "🔓 Разрешаем трафик:"
+nft add rule inet filter input ct state established,related accept
+nft add rule inet filter input iifname "lo" accept
+
+echo "⏱ Добавляем rate limiting для SSH (макс 3 новых подключения в минуту)..."
+nft add rule inet filter input tcp dport $SSH_PORT ct state new limit rate 3/minute accept
+
+echo "🚫 Блокируем ICMP ping..."
+nft add rule inet filter input icmp type echo-request drop
+nft add rule inet filter input ip6 nexthdr icmpv6 icmpv6 type echo-request drop
+
+echo "💾 Сохраняем правила..."
+nft list ruleset > /etc/nftables.conf
+systemctl enable nftables
+systemctl restart nftables
+
+# ========== SSH-ПОРТ ==========
 
 echo "🔐 Перенос SSH на порт $SSH_PORT..."
 SSHD_CONFIG="/etc/ssh/sshd_config"
@@ -61,6 +101,8 @@ else
     echo "❌ ВНИМАНИЕ: SSH не слушает на новом порту!"
     exit 1
 fi
+
+# ========== ОТКЛЮЧЕНИЕ IPv6 ==========
 
 echo -ne "${GREEN}🌐 Отключить IPv6? (Y/n, по умолчанию Y): ${NC}"
 read DISABLE_IPV6
@@ -90,29 +132,7 @@ else
     echo "ℹ️ IPv6 оставлен включённым"
 fi
 
-echo -ne "${GREEN}📵 Отключить отклик на ping (ICMP Echo)? (Y/n, по умолчанию Y): ${NC}"
-read DISABLE_PING
-DISABLE_PING=${DISABLE_PING:-Y}
-
-if [[ "$DISABLE_PING" =~ ^[Yy]$ ]]; then
-    echo "📵 Отключаем пинг через nftables..."
-
-    if ! nft list table inet filter &>/dev/null; then
-        nft add table inet filter
-    fi
-
-    if ! nft list chain inet filter input &>/dev/null; then
-        nft add chain inet filter input { type filter hook input priority 0 \; policy accept \; }
-    fi
-
-    nft add rule inet filter input ip protocol icmp icmp type echo-request drop 2>/dev/null || true
-    nft add rule inet filter input ip6 nexthdr icmpv6 icmpv6 type echo-request drop 2>/dev/null || true
-
-    echo "✅ Пинг отключён (ICMP Echo-запросы блокируются)"
-else
-    echo "ℹ️ Пинг оставлен включённым"
-fi
-
+# === СМЕНА ПАРОЛЯ SSH-ПОЛЬЗОВАТЕЛЯ ===
 echo -ne "${GREEN}🔑 Хотите сменить пароль пользователя для SSH? (Y/n, по умолчанию Y): ${NC}"
 read CHANGE_PASS
 CHANGE_PASS=${CHANGE_PASS:-Y}
@@ -133,11 +153,13 @@ else
   echo "ℹ️ Пароль оставлен без изменений."
 fi
 
+# === ЗАВЕРШЕНИЕ ===
 echo -e "\n🎉 Всё готово:"
 echo "────────────────────────────────────────────"
+echo " ✅ Пинг отключён (IPv4 + IPv6)"
 echo " ✅ SSH перенесён на порт: $SSH_PORT"
+echo " ✅ nftables настроен и активен"
 [[ "$DISABLE_IPV6" =~ ^[Yy]$ ]] && echo " ✅ IPv6 отключён"
-[[ "$DISABLE_PING" =~ ^[Yy]$ ]] && echo " ✅ Пинг отключён"
 [[ "$CHANGE_PASS" =~ ^[Yy]$ ]] && echo " ✅ Пароль пользователя '$TARGET_USER' обновлён"
 echo "────────────────────────────────────────────"
 
