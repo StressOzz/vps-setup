@@ -10,6 +10,8 @@ GREEN='\033[1;32m'
 CYAN='\033[1;36m'
 WHITE='\033[1;37m'
 RED='\033[1;91m'
+PURPLE='\033[1;35m'
+YELLOW='\033[1;33m'
 RESET='\033[0m'
 
 echo ""
