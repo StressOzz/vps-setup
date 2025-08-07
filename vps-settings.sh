@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v2.7"
+VERSION="v2.8"
 
 clear
 
@@ -47,7 +47,8 @@ echo ""
 echo -e "${GREEN}✅ Система обновлена.${RESET}"
 
 # 🔐 Изменение SSH порта
-echo -e "\n${RED}🔹 Введите новый SSH порт (оставьте пустым, чтобы не менять):${RESET} \c"
+echo -e "${WHITE}🔹Изменяем порт SSH${RESET}"
+echo -e "\n${RED}Введите новый SSH порт (оставьте пустым, чтобы не менять):${RESET} \c"
 read -r NEW_SSH_PORT
 if [[ -n "$NEW_SSH_PORT" ]]; then
     if [[ "$NEW_SSH_PORT" =~ ^[0-9]+$ && "$NEW_SSH_PORT" -ge 1 && "$NEW_SSH_PORT" -le 65535 ]]; then
@@ -63,7 +64,8 @@ else
 fi
 
 # 🔑 Смена root-пароля
-echo -e "\n${RED}🔹 Введите новый пароль root (оставьте пустым, чтобы не менять):${RESET} \c"
+echo -e "${WHITE}🔹Изменяем пароль root${RESET}"
+echo -e "\n${RED}Введите новый пароль root (оставьте пустым, чтобы не менять):${RESET} \c"
 read -rs NEW_ROOT_PASS
 if [[ -n "$NEW_ROOT_PASS" ]]; then
     echo "root:$NEW_ROOT_PASS" | chpasswd
@@ -73,7 +75,6 @@ else
 fi
 
 # 🚫 Отключение ICMP
-echo -e "\n${RED}🔹 Отключаем пинг (ICMP echo-request)...${RESET}"
 if ! grep -q "net.ipv4.icmp_echo_ignore_all" /etc/sysctl.conf; then
     echo "net.ipv4.icmp_echo_ignore_all = 1" >> /etc/sysctl.conf
     sysctl -p >/dev/null 2>&1
@@ -97,7 +98,7 @@ read -r REBOOT
 if [[ "$REBOOT" =~ ^[Yy]$ ]]; then
     echo -e "${WHITE}Перезагрузка через:${RESET}"
     for i in {5..1}; do
-        echo -ne "${CYAN}  $i...${RESET}\r"
+        echo -ne "${CYAN} $i...${RESET} "
         sleep 1.5
     done
     echo -e "\n${RED}🚀 Перезагрузка...${RESET}"
