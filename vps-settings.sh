@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v2.2"
+VERSION="v2.3"
 
 clear
 
@@ -25,11 +25,9 @@ print_banner() {
   echo "░ ░▒  ░ ░    ░      ░▒ ░ ▒░ ░ ░  ░░ ░▒  ░ ░░ ░▒  ░ ░"
   echo "░  ░  ░    ░        ░░   ░    ░   ░  ░  ░  ░  ░  ░  "
   echo "      ░              ░        ░  ░      ░        ░  "
-  echo ""
+  echo "                                                ${VERSION}"
 }
 print_banner
-
-echo -e "Версия скрипта: ${VERSION}"
 echo ""
 
 # Флаги изменений
