@@ -1,4 +1,134 @@
 #!/bin/bash
+#!/bin/bash
+
+# Цвета для удобства
+RED="\e[31m"
+GREEN="\e[32m"
+YELLOW="\e[33m"
+BLUE="\e[34m"
+MAGENTA="\e[35m"
+CYAN="\e[36m"
+WHITE="\e[97m"
+RESET="\e[0m"
+BOLD="\e[1m"
+
+clear
+
+echo -e "${BOLD}${RED}Вариант 1: Радуга и энергия${RESET}"
+echo -e "${RED}█${YELLOW}█████${GREEN}█ ▄▄▄${CYAN}█████▓ ${BLUE}██▀███  ${MAGENTA}▓█████   ${RED}██████   ${YELLOW}██████${RESET}"
+echo -e "${RED}▒██    ▒ ${YELLOW}▓  ██▒ ▓▒${GREEN}▓██ ▒ ██▒${CYAN}▓█   ▀ ${BLUE}▒██    ▒ ${MAGENTA}▒██    ▒${RESET}"
+echo -e "${RED}░ ▓██▄   ${YELLOW}▒ ▓██░ ▒░${GREEN}▓██ ░▄█ ▒${CYAN}▒███   ${BLUE}░ ▓██▄   ${MAGENTA}░ ▓██▄   ${RESET}"
+echo -e "${RED}  ▒   ██▒${YELLOW}░ ▓██▓ ░ ${GREEN}▒██▀▀█▄  ${CYAN}▒▓█  ▄   ${BLUE}▒   ██▒  ${MAGENTA}▒   ██▒${RESET}"
+echo -e "${RED}▒██████▒▒${YELLOW}  ▒██▒ ░ ${GREEN}░██▓ ▒██▒${CYAN}░▒████▒${BLUE}▒██████▒▒${MAGENTA}▒██████▒▒${RESET}"
+echo -e "${RED}▒ ▒▓▒ ▒ ░${YELLOW}  ▒ ░░   ${GREEN}░ ▒▓ ░▒▓░${CYAN}░░ ▒░ ░${BLUE}▒ ▒▓▒ ▒ ░${MAGENTA}▒ ▒▓▒ ▒ ░${RESET}"
+echo -e "${RED}░ ░▒  ░ ░${YELLOW}    ░    ${GREEN}  ░▒ ░ ▒░${CYAN} ░ ░  ░${BLUE}░ ░▒  ░ ░${MAGENTA}░ ░▒  ░ ░${RESET}"
+echo -e "${RED}░  ░  ░  ${YELLOW}   ░      ${GREEN}░░   ░  ${CYAN}  ░   ░ ${BLUE}  ░  ░  ${MAGENTA}  ░  ░  ${RESET}"
+echo -e "${RED}      ░  ${YELLOW}         ░    ${GREEN}   ░  ░  ${CYAN}     ░   ${BLUE}      ░ ${MAGENTA}      ░  ${RESET}"
+
+echo
+echo -e "${BOLD}${GREEN}Вариант 2: STRESS — справимся вместе!${RESET}"
+echo -e "${GREEN}██████${WHITE}   ██▀███  ▓█████   ██████   ██████ "
+echo -e "${GREEN}▒██    ▒${WHITE}▓██ ▒ ██▒▓█   ▀ ▒██    ▒ ▒██    ▒ "
+echo -e "${GREEN}░ ▓██▄  ${WHITE}▓██ ░▄█ ▒▒███   ░ ▓██▄   ░ ▓██▄   "
+echo -e "${GREEN}  ▒   ██▒${WHITE}▒██▀▀█▄  ▒▓█  ▄   ▒   ██▒  ▒   ██▒"
+echo -e "${GREEN}▒██████▒▒${WHITE}░██▓ ▒██▒░▒████▒▒██████▒▒▒██████▒▒"
+echo -e "${GREEN}▒ ▒▓▒ ▒ ░${WHITE}░ ▒▓ ░▒▓░░░ ▒░ ░▒ ▒▓▒ ▒ ░▒ ▒▓▒ ▒ ░"
+echo -e "${GREEN}░ ░▒  ░ ░${WHITE}░▒ ░ ▒░ ░ ░  ░░ ░▒  ░ ░░ ░▒  ░ ░"
+echo -e "${GREEN}░  ░  ░  ${WHITE}░░   ░    ░   ░  ░  ░  ░  ░  ░  "
+echo -e "${BOLD}${RED} S T R E S S — Не сдавайся!${RESET}"
+
+echo
+echo -e "${BOLD}${YELLOW}Вариант 3: Минимализм с цветом${RESET}"
+echo -e "${YELLOW}██████ ▄▄▄█████▓ ██▀███  ▓█████   ██████   ██████ "
+echo -e "${YELLOW}▒██    ▒ ▓  ██▒ ▓▒▓██ ▒ ██▒▓█   ▀ ▒██    ▒ ▒██    ▒ "
+echo -e "${YELLOW}░ ▓██▄   ▒ ▓██░ ▒░▓██ ░▄█ ▒▒███   ░ ▓██▄   ░ ▓██▄   "
+echo -e "${YELLOW}  ▒   ██▒░ ▓██▓ ░ ▒██▀▀█▄  ▒▓█  ▄   ▒   ██▒  ▒   ██▒"
+echo -e "${YELLOW}▒██████▒▒  ▒██▒ ░ ░██▓ ▒██▒░▒████▒▒██████▒▒▒██████▒▒"
+echo -e "${YELLOW}▒ ▒▓▒ ▒ ░  ▒ ░░   ░ ▒▓ ░▒▓░░░ ▒░ ░▒ ▒▓▒ ▒ ░▒ ▒▓▒ ▒ ░"
+echo -e "${YELLOW}░ ░▒  ░ ░    ░      ░▒ ░ ▒░ ░ ░  ░░ ░▒  ░ ░░ ░▒  ░ ░"
+echo -e "${YELLOW}░  ░  ░    ░        ░░   ░    ░   ░  ░  ░  ░  ░  ░  "
+echo -e "${RESET}"
+
+echo
+echo -e "${BOLD}${CYAN}Вариант 4: Блоки и углы${RESET}"
+echo -e "${CYAN}╭──────────────────────────────────────────────╮"
+echo -e "│  ██████ ▄▄▄█████▓ ██▀███  ▓█████   ██████   ██████  │"
+echo -e "│▒██    ▒ ▓  ██▒ ▓▒▓██ ▒ ██▒▓█   ▀ ▒██    ▒ ▒██    ▒  │"
+echo -e "│░ ▓██▄   ▒ ▓██░ ▒░▓██ ░▄█ ▒▒███   ░ ▓██▄   ░ ▓██▄   │"
+echo -e "│  ▒   ██▒░ ▓██▓ ░ ▒██▀▀█▄  ▒▓█  ▄   ▒   ██▒  ▒   ██▒ │"
+echo -e "│▒██████▒▒  ▒██▒ ░ ░██▓ ▒██▒░▒████▒▒██████▒▒▒██████▒▒ │"
+echo -e "│▒ ▒▓▒ ▒ ░  ▒ ░░   ░ ▒▓ ░▒▓░░░ ▒░ ░▒ ▒▓▒ ▒ ░▒ ▒▓▒ ▒ ░ │"
+echo -e "│░ ░▒  ░ ░    ░      ░▒ ░ ▒░ ░ ░  ░░ ░▒  ░ ░░ ░▒  ░ ░ │"
+echo -e "│░  ░  ░    ░        ░░   ░    ░   ░  ░  ░  ░  ░  ░  │"
+echo -e "╰──────────────────────────────────────────────╯${RESET}"
+
+echo
+echo -e "${BOLD}${MAGENTA}Вариант 5: STRESS в центре внимания${RESET}"
+echo -e "${MAGENTA}██████   ██████   ██████   ██████"
+echo -e "${MAGENTA}█     █ █      █ █      █ █      █"
+echo -e "${MAGENTA}█  S  █ █  T   █ █  R   █ █  E   █"
+echo -e "${MAGENTA}█  T  █ █  R   █ █  E   █ █  S   █"
+echo -e "${MAGENTA}█  R  █ █  E   █ █  S   █ █  S   █"
+echo -e "${MAGENTA}██████   ██████   ██████   ██████"
+echo -e "${RESET}"
+
+echo
+echo -e "${BOLD}${BLUE}Вариант 6: Контраст и рамка${RESET}"
+echo -e "${BLUE}╔══════════════════════════════════════════════╗"
+echo -e "║  ██████ ▄▄▄█████▓ ██▀███  ▓█████   ██████   ██████  ║"
+echo -e "║▒██    ▒ ▓  ██▒ ▓▒▓██ ▒ ██▒▓█   ▀ ▒██    ▒ ▒██    ▒  ║"
+echo -e "║░ ▓██▄   ▒ ▓██░ ▒░▓██ ░▄█ ▒▒███   ░ ▓██▄   ░ ▓██▄   ║"
+echo -e "║  ▒   ██▒░ ▓██▓ ░ ▒██▀▀█▄  ▒▓█  ▄   ▒   ██▒  ▒   ██▒ ║"
+echo -e "║▒██████▒▒  ▒██▒ ░ ░██▓ ▒██▒░▒████▒▒██████▒▒▒██████▒▒ ║"
+echo -e "║▒ ▒▓▒ ▒ ░  ▒ ░░   ░ ▒▓ ░▒▓░░░ ▒░ ░▒ ▒▓▒ ▒ ░▒ ▒▓▒ ▒ ░ ║"
+echo -e "║░ ░▒  ░ ░    ░      ░▒ ░ ▒░ ░ ░  ░░ ░▒  ░ ░░ ░▒  ░ ░ ║"
+echo -e "║░  ░  ░    ░        ░░   ░    ░   ░  ░  ░  ░  ░  ░  ║"
+echo -e "╚══════════════════════════════════════════════╝${RESET}"
+
+echo
+echo -e "${BOLD}${CYAN}Вариант 7: Градиент + STRESS${RESET}"
+echo -e "${CYAN}██████${WHITE}   ██████  ${CYAN}▄▄▄█████▓  ${WHITE}██▀███  "
+echo -e "${CYAN}▒██    ▒${WHITE} ▓  ██▒ ▓▒${CYAN}▓██ ▒ ██▒ ${WHITE}▓█   ▀ "
+echo -e "${CYAN}░ ▓██▄  ${WHITE}▒ ▓██░ ▒░${CYAN}▓██ ░▄█ ▒ ${WHITE}▒███   "
+echo -e "${CYAN}  ▒   ██▒${WHITE}░ ▓██▓ ░ ${CYAN}▒██▀▀█▄  ${WHITE}▒▓█  ▄  "
+echo -e "${CYAN}▒██████▒▒${WHITE}  ▒██▒ ░ ${CYAN}░██▓ ▒██▒${WHITE}░▒████▒ "
+echo -e "${CYAN}▒ ▒▓▒ ▒ ░${WHITE}  ▒ ░░   ${CYAN}░ ▒▓ ░▒▓░${WHITE}░░ ▒░ ░ "
+echo -e "${CYAN}░ ░▒  ░ ░${WHITE}    ░    ${CYAN}  ░▒ ░ ▒░${WHITE} ░ ░  ░ "
+echo -e "${CYAN}░  ░  ░  ${WHITE}   ░      ${CYAN}░░   ░  ${WHITE}  ░    "
+echo -e "${BOLD}${MAGENTA}S T R E S S — Keep calm and carry on!${RESET}"
+
+echo
+echo -e "${BOLD}${WHITE}Вариант 8: Обводка и свечение${RESET}"
+echo -e "\e[97;100m ██████ ▄▄▄█████▓ ██▀███  ▓█████   ██████   ██████ \e[0m"
+echo -e "\e[97;100m▒██    ▒ ▓  ██▒ ▓▒▓██ ▒ ██▒▓█   ▀ ▒██    ▒ ▒██    ▒ \e[0m"
+echo -e "\e[97;100m░ ▓██▄   ▒ ▓██░ ▒░▓██ ░▄█ ▒▒███   ░ ▓██▄   ░ ▓██▄   \e[0m"
+echo -e "\e[97;100m  ▒   ██▒░ ▓██▓ ░ ▒██▀▀█▄  ▒▓█  ▄   ▒   ██▒  ▒   ██▒\e[0m"
+echo -e "\e[97;100m▒██████▒▒  ▒██▒ ░ ░██▓ ▒██▒░▒████▒▒██████▒▒▒██████▒▒\e[0m"
+echo -e "\e[97;100m▒ ▒▓▒ ▒ ░  ▒ ░░   ░ ▒▓ ░▒▓░░░ ▒░ ░▒ ▒▓▒ ▒ ░▒ ▒▓▒ ▒ ░\e[0m"
+echo -e "\e[97;100m░ ░▒  ░ ░    ░      ░▒ ░ ▒░ ░ ░  ░░ ░▒  ░ ░░ ░▒  ░ ░\e[0m"
+echo -e "\e[97;100m░  ░  ░    ░        ░░   ░    ░   ░  ░  ░  ░  ░  ░  \e[0m"
+
+echo
+echo -e "${BOLD}${YELLOW}Вариант 9: Цвет и стиль шрифтов${RESET}"
+echo -e "${YELLOW}██████▄  ▄▄▄█████▓ ██▀███  ▓█████   ██████   ██████ "
+echo -e "${YELLOW}▒██    ▒ ▓  ██▒ ▓▒▓██ ▒ ██▒▓█   ▀ ▒██    ▒ ▒██    ▒ "
+echo -e "${YELLOW}░ ▓██▄   ▒ ▓██░ ▒░▓██ ░▄█ ▒▒███   ░ ▓██▄   ░ ▓██▄   "
+echo -e "${YELLOW}  ▒   ██▒░ ▓██▓ ░ ▒██▀▀█▄  ▒▓█  ▄   ▒   ██▒  ▒   ██▒"
+echo -e "${YELLOW}▒██████▒▒  ▒██▒ ░ ░██▓ ▒██▒░▒████▒▒██████▒▒▒██████▒▒"
+echo -e "${YELLOW}▒ ▒▓▒ ▒ ░  ▒ ░░   ░ ▒▓ ░▒▓░░░ ▒░ ░▒ ▒▓▒ ▒ ░▒ ▒▓▒ ▒ ░"
+echo -e "${YELLOW}░ ░▒  ░ ░    ░      ░▒ ░ ▒░ ░ ░  ░░ ░▒  ░ ░░ ░▒  ░ ░"
+echo -e "${YELLOW}░  ░  ░    ░        ░░   ░    ░   ░  ░  ░  ░  ░  ░  "
+echo -e "${RESET}"
+
+echo
+echo -e "${BOLD}${CYAN}Вариант 10: STRESS и динамика${RESET}"
+echo -e "${CYAN}███████  ██████  ██████   ██████  "
+echo -e "${WHITE}██      ██      ██      ██        "
+echo -e "${CYAN}█████   ██████  ██████   █████    "
+echo -e "${WHITE}     ██ ██      ██           ██   "
+echo -e "${CYAN}███████ ██████  ██████   ██████   "
+echo -e "${BOLD}${MAGENTA}S T R E S S — держи удар, Евгений!${RESET}"
+
 
 
     echo -e "\e[31m ██████ \e[33m▄▄▄█████▓ \e[32m██▀███  \e[36m▓█████   \e[34m ██████   \e[35m██████ \e[0m"
