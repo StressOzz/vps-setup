@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.6"
+VERSION="v1.7"
 
 clear
 
