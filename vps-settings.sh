@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v3.5"
+VERSION="v3.6"
 
 clear
 
@@ -74,12 +74,22 @@ echo ""
 echo -e "${WHITE}🔹Изменяем пароль root${RESET}"
 echo -e "\n${RED}Введите новый пароль root (оставьте пустым, чтобы не менять):${RESET} \c"
 read -rs NEW_ROOT_PASS
+
 if [[ -n "$NEW_ROOT_PASS" ]]; then
-    echo "root:$NEW_ROOT_PASS" | chpasswd
-    echo -e "\n${GREEN}✅ Пароль root изменён.${RESET}"
+    echo -e "\n${RED}Повторите новый пароль для подтверждения:${RESET} \c"
+    read -rs NEW_ROOT_PASS_CONFIRM
+    echo ""
+
+    if [[ "$NEW_ROOT_PASS" == "$NEW_ROOT_PASS_CONFIRM" ]]; then
+        echo "root:$NEW_ROOT_PASS" | chpasswd
+        echo -e "\n${GREEN}✅ Пароль root изменён.${RESET}"
+    else
+        echo -e "\n${RED}❌ Пароли не совпадают. Изменения отменены.${RESET}"
+    fi
 else
     echo -e "\n${GREEN}✅ Пароль root оставлен без изменений.${RESET}"
 fi
+
 
 # 🚫 Отключение ICMP
 if ! grep -q "net.ipv4.icmp_echo_ignore_all" /etc/sysctl.conf; then
