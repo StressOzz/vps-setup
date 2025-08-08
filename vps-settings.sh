@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v2.0"
+VERSION="v2.1"
 
 clear
 
@@ -94,7 +94,7 @@ if [[ -n "$NEW_SSH_PORT" ]]; then
         else
             sed -i "s/^#\?Port .*/Port $NEW_SSH_PORT/" /etc/ssh/sshd_config
             if systemctl restart sshd; then
-                echo -e "${GREEN}✅ SSH порт изменён на $NEW_SSH_PORT.${RESET}"
+                echo -e "${GREEN}✅ SSH порт изменён на ${RESET}${YELLOW}$NEW_SSH_PORT${RESET}"
                 SSH_PORT_CHANGED=1
             else
                 echo -e "${PURPLE}⚠️ Не удалось перезапустить SSH!${RESET}"
@@ -130,9 +130,11 @@ fi
 if ! grep -q "net.ipv4.icmp_echo_ignore_all" /etc/sysctl.conf; then
     echo "net.ipv4.icmp_echo_ignore_all = 1" >> /etc/sysctl.conf
     sysctl -p >/dev/null 2>&1
+    echo ""
     echo -e "\n${GREEN}✅ Пинг (ICMP echo-request) отключён.${RESET}"
     ICMP_DISABLED=1
 else
+    echo ""
     echo -e "\n${GREEN}✅ Пинг уже был отключён ранее.${RESET}"
 fi
 
