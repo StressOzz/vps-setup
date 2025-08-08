@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.3"
+VERSION="v1.4"
 
 clear
 
@@ -13,7 +13,7 @@ RED='\033[1;91m'
 PURPLE='\033[1;35m'
 YELLOW='\033[1;33m'
 RESET='\033[0m'
-GRAY='\033[90m'
+GRAY='\033[38;5;236m'
 BRIGHT_BLUE='\033[1;34m'
 
 print_banner() {
