@@ -42,12 +42,12 @@ echo -e "\n${PURPLE}🔹 Обновляем систему...${RESET}"
 echo ""
 echo ""
 if ! apt update -qq; then
-    echo -e "${RED}❌ Ошибка обновления пакетов.${RESET}"
+    echo -e "${PURPLE}❌ Ошибка обновления пакетов.${RESET}"
     exit 1
 fi
 apt install -y sudo -qq
 if ! apt full-upgrade -y -qq; then
-    echo -e "${RED}❌ Ошибка обновления системы.${RESET}"
+    echo -e "${PURPLE}❌ Ошибка обновления системы.${RESET}"
     exit 1
 fi
 
@@ -72,6 +72,7 @@ if [[ -z "$CURRENT_PORT" ]]; then
   CURRENT_PORT=$(grep -E '^\s*#?\s*Port\s+[0-9]+' /etc/ssh/sshd_config | tail -n1 | awk '{print $2}')
 fi
 
+echo ""
 echo -e "${WHITE}🔹Изменяем порт SSH${RESET}"
 echo ""
 echo -e "${CYAN}Текущий SSH порт: $CURRENT_PORT${RESET}"
@@ -111,6 +112,7 @@ fi
 
 # 🔑 Смена root-пароля
 echo ""
+echo ""
 echo -e "${WHITE}🔹Изменяем пароль root${RESET}"
 echo -e "\n${CYAN}Пароль не будет отображаться при вводе.${RESET}"
 echo -e "${RED}Введите новый пароль root (оставьте пустым, чтобы не менять):${RESET} \c"
@@ -136,6 +138,7 @@ fi
 
 # 🧾 Итог
 IP_ADDR=$(curl -s https://ipinfo.io/ip)
+echo ""
 echo -e "\n${GREEN}✅ Все настройки выполнены!${RESET}"
 echo ""
 echo -e "${WHITE}==============================${RESET}"
@@ -143,6 +146,7 @@ echo -e "🌐 ${CYAN}IP сервера:${RESET}     ${YELLOW}$IP_ADDR${RESET}"
 echo -e "📡 ${CYAN}Порт SSH:${RESET}       ${YELLOW}$NEW_SSH_PORT${RESET}"
 [[ -n "$NEW_ROOT_PASS" ]] && echo -e "🔑 ${CYAN}Пароль root:${RESET}    ${YELLOW}$NEW_ROOT_PASS${RESET}"
 echo -e "${WHITE}==============================${RESET}"
+echo ""
 
 # 🔁 Перезагрузка (только если были изменения)
 if (( SSH_PORT_CHANGED + ROOT_PASS_CHANGED + ICMP_DISABLED > 0 )); then
