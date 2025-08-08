@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.4"
+VERSION="v1.5"
 
 clear
 
@@ -149,7 +149,7 @@ echo -e "🌐 ${CYAN}IP сервера:${RESET}     ${YELLOW}$IP_ADDR${RESET}"
 echo -e "📡 ${CYAN}Порт SSH:${RESET}       ${YELLOW}$NEW_SSH_PORT${RESET}"
 [[ -n "$NEW_ROOT_PASS" ]] && echo -e "🔑 ${CYAN}Пароль root:${RESET}    ${YELLOW}$NEW_ROOT_PASS${RESET}"
 echo -e "${WHITE}==============================${RESET}"
-echo -e "\n${RED}❗️${RESET}${BRIGHT_BLUE}При неверном вводе ${RESET}${RED}НЕ${RESET}${BRIGHT_BLUE} перезагружайте систему, а запустите скрипт заново.${RESET}"
+echo -e "\n${RED}❗️${RESET}${BRIGHT_BLUE}При неверном вводе, ${RESET}${RED}НЕ${RESET}${BRIGHT_BLUE} перезагружайте систему, а запустите скрипт заново.${RESET}"
 echo ""
 
 
