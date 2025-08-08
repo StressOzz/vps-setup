@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v2.4"
+VERSION="v2.5"
 
 clear
 
@@ -27,7 +27,7 @@ print_banner() {
   echo "░ ░▒  ░ ░    ░      ░▒ ░ ▒░ ░ ░  ░░ ░▒  ░ ░░ ░▒  ░ ░"
   echo "░  ░  ░    ░        ░░   ░    ░   ░  ░  ░  ░  ░  ░  "
   echo "      ░              ░        ░  ░      ░        ░  "
-  echo "                                                ${GRAY}${VERSION}${RESET}"
+  echo -e"                                                ${GRAY}${VERSION}${RESET}"
 }
 print_banner
 echo ""
