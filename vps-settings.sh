@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.3"
+VERSION="v1.4"
 
 clear
 
@@ -36,8 +36,7 @@ echo ""
 echo -e "\n${PURPLE}🔹 Обновляем систему...${RESET}"
 echo ""
 echo ""
-apt update && apt install -y sudo >/dev/null 2>&1
-sudo apt update && sudo apt list --upgradable && sudo apt full-upgrade -y >/dev/null 2>&1
+apt update -qq && apt install -y sudo -qq && apt full-upgrade -y -qq
 
 # >>>> Проверка curl перед использованием
 if ! command -v curl >/dev/null 2>&1; then
@@ -58,23 +57,24 @@ read -r NEW_SSH_PORT
 
 if [[ -n "$NEW_SSH_PORT" ]]; then
     if [[ "$NEW_SSH_PORT" =~ ^[0-9]+$ && "$NEW_SSH_PORT" -ge 1 && "$NEW_SSH_PORT" -le 65535 ]]; then
-        if ss -tuln | grep -q ":$NEW_SSH_PORT "; then
-            echo -e "${RED}❌ Порт $NEW_SSH_PORT уже занят. Изменения отменены.${RESET}"
-            NEW_SSH_PORT=$(grep ^Port /etc/ssh/sshd_config | awk '{print $2}')
+        # Проверяем, занят ли порт
+        if ss -tln | grep -q ":$NEW_SSH_PORT\b"; then
+            echo -e "${PURPLE}❌ Порт $NEW_SSH_PORT уже занят.${RESET} ${GREEN}Изменения отменены.${RESET}"
+            # НЕ очищаем NEW_SSH_PORT, чтобы в итогах показать введённый порт
+            # И, возможно, можно получить текущий порт из конфига:
+            # NEW_SSH_PORT=$(grep ^Port /etc/ssh/sshd_config | awk '{print $2}')
         else
-            cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak.$(date +%F)
             sed -i "s/^#\?Port .*/Port $NEW_SSH_PORT/" /etc/ssh/sshd_config
-            systemctl restart sshd && echo -e "${GREEN}✅ SSH порт изменён.${RESET}" || echo -e "${RED}⚠️ Не удалось перезапустить SSH!${RESET}"
+            systemctl restart sshd && echo -e "${GREEN}✅ SSH порт изменён.${RESET}" || echo -e "${PURPLE}⚠️ Не удалось перезапустить SSH!${RESET}"
         fi
     else
-        echo -e "${RED}❌ Некорректный порт. Изменения отменены.${RESET}"
+        echo -e "${PURPLE}❌ Некорректный порт.${RESET} ${GREEN}Изменения отменены.${RESET}"
         NEW_SSH_PORT=$(grep ^Port /etc/ssh/sshd_config | awk '{print $2}')
     fi
 else
     NEW_SSH_PORT=$(grep ^Port /etc/ssh/sshd_config | awk '{print $2}')
     echo -e "${GREEN}✅ SSH порт оставлен без изменений.${RESET}"
 fi
-
 
 # 🔑 Смена root-пароля
 echo ""
