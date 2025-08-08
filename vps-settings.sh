@@ -169,6 +169,6 @@ if (( SSH_PORT_CHANGED + ROOT_PASS_CHANGED + ICMP_DISABLED > 0 )); then
         echo ""
     fi
 else
-    echo -e "\n${GREEN}✅ Изменений не было — перезагрузка не нужна.${RESET}"
+    echo -e "${GREEN}✅ Изменений не было — перезагрузка не нужна.${RESET}"
     echo ""
 fi
