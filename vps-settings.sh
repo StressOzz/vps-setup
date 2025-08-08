@@ -27,7 +27,8 @@ print_banner() {
   echo "░ ░▒  ░ ░    ░      ░▒ ░ ▒░ ░ ░  ░░ ░▒  ░ ░░ ░▒  ░ ░"
   echo "░  ░  ░    ░        ░░   ░    ░   ░  ░  ░  ░  ░  ░  "
   echo "      ░              ░        ░  ░      ░        ░  "
-  echo -e"                                                ${GRAY}${VERSION}${RESET}"
+  echo -e "                                                ${GRAY}${VERSION}${RESET}"
+
 }
 print_banner
 echo ""
