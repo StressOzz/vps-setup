@@ -75,7 +75,7 @@ fi
 echo ""
 echo -e "${BRIGHT_BLUE}🔹${WHITE}Изменяем порт SSH${RESET}"
 echo ""
-echo -e "${CYAN}Текущий SSH порт: $CURRENT_PORT${RESET}"
+echo -e "${CYAN}Текущий SSH порт: ${YELLOW}$CURRENT_PORT${RESET}"
 echo -e "${RED}Введите новый SSH порт (оставьте пустым, чтобы не менять):${RESET} \c"
 read -r NEW_SSH_PORT
 
