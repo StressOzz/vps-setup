@@ -27,6 +27,7 @@ print_banner() {
   echo "      ░              ░        ░  ░      ░        ░  "
   echo ""
 }
+print_banner
 
 echo -e "Версия скрипта: ${VERSION}"
 echo ""
