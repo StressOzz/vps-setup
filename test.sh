@@ -1,10 +1,16 @@
-#!/bin/bash
-RED='\033[1;91m'
-RESET='\033[0m'
-CLEAR_LINE='\033[2K'
-DELAY=0.1
+print_stress_fade() {
+  # Цвета от белого к темно-красному (5 ступеней)
+  local colors=(
+    '\033[1;37m'  # ярко-белый
+    '\033[0;37m'  # серый светлый
+    '\033[0;31m'  # красный темный
+    '\033[0;31m'  # красный темный (повтор для эффекта)
+    '\033[2;31m'  # очень темный красный
+  )
+  local RESET='\033[0m'
 
-banner=(
+  # Баннер STRESS по строкам
+  local banner_lines=(
 "  ██████ ▄▄▄█████▓ ██▀███  ▓█████   ██████   ██████ "
 "▒██    ▒ ▓  ██▒ ▓▒▓██ ▒ ██▒▓█   ▀ ▒██    ▒ ▒██    ▒ "
 "░ ▓██▄   ▒ ▓██░ ▒░▓██ ░▄█ ▒▒███   ░ ▓██▄   ░ ▓██▄   "
@@ -14,47 +20,30 @@ banner=(
 "░ ░▒  ░ ░    ░      ░▒ ░ ▒░ ░ ░  ░░ ░▒  ░ ░░ ░▒  ░ ░"
 "░  ░  ░    ░        ░░   ░    ░   ░  ░  ░  ░  ░  ░  "
 "      ░              ░        ░  ░      ░        ░  "
-)
+  )
 
-print_banner() {
   clear
-  for line in "${banner[@]}"; do
-    echo -e "$line"
+
+  # 1. Построчный вывод баннера с задержкой (0.1 сек)
+  for line in "${banner_lines[@]}"; do
+    echo -e "${colors[0]}$line${RESET}"
+    sleep 0.1
   done
-}
 
-print_drips() {
-  # Размер баннера в строках и символах
-  local rows=${#banner[@]}
-  local cols=${#banner[0]}
+  sleep 0.5
 
-  # Массив капель: для каждого столбца, где есть буква, по очереди рисуем красные 'капли' вниз
-  for drip_line in {1..6}; do
-    # Сдвигаем курсор вверх на rows, чтобы перерисовать "капли"
-    tput cuu $rows
-
-    for ((i=0; i<rows; i++)); do
-      line=""
-      for ((j=0; j<cols; j++)); do
-        char="${banner[i]:j:1}"
-        # Если в этой колонке есть символ (не пробел) и это строка, где капля должна идти
-        if [[ "$char" != " " ]]; then
-          # Если текущая строка - последняя или ниже где капля, рисуем красную каплю
-          if (( i + drip_line >= rows )); then
-            line+="${RED}░${RESET}"
-          else
-            line+="${char}"
-          fi
-        else
-          # пробелы просто пробелы
-          line+=" "
-        fi
-      done
-      echo -e "$line"
+  # 2. Эффект заливки сверху вниз по цветам
+  local steps=${#colors[@]}
+  for ((step=1; step<steps; step++)); do
+    # для каждой строки применяем цвет из colors[step], остальные строки остаются в предыдущем цвете
+    clear
+    for ((i=0; i<${#banner_lines[@]}; i++)); do
+      if (( i < (step * ${#banner_lines[@]} / steps) )); then
+        echo -e "${colors[step]}${banner_lines[i]}${RESET}"
+      else
+        echo -e "${colors[step-1]}${banner_lines[i]}${RESET}"
+      fi
     done
-    sleep $DELAY
+    sleep 0.3
   done
 }
-
-print_banner
-print_drips
