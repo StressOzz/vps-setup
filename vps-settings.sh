@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.7"
+VERSION="v1.8"
 
 clear
 
@@ -117,14 +117,9 @@ echo -e "${RED}Введите новый пароль root (оставьте п�
 read -rs NEW_ROOT_PASS
 echo ""
 if [[ -n "$NEW_ROOT_PASS" ]]; then
-    if (( ${#NEW_ROOT_PASS} < 8 )); then
-        echo -e "${RED}❌ Пароль должен быть не менее 8 символов. Изменения отменены.${RESET}"
-        NEW_ROOT_PASS=""
-    else
-        echo "root:$NEW_ROOT_PASS" | chpasswd
-        echo -e "${GREEN}✅ Пароль root изменён.${RESET}"
-        ROOT_PASS_CHANGED=1
-    fi
+    echo "root:$NEW_ROOT_PASS" | chpasswd
+    echo -e "${GREEN}✅ Пароль root изменён.${RESET}"
+    ROOT_PASS_CHANGED=1
 else
     echo -e "${GREEN}✅ Пароль root оставлен без изменений.${RESET}"
 fi
