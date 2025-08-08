@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.5"
+VERSION="v1.6"
 
 clear
 
@@ -64,26 +64,40 @@ echo -e "\n${GREEN}✅ Система обновлена.${RESET}"
 echo ""
 
 # 🔐 Изменение SSH порта
-CURRENT_PORT=$(grep ^Port /etc/ssh/sshd_config | awk '{print $2}')
-echo -e "${CYAN}Текущий SSH порт: $CURRENT_PORT${RESET}"
+
+# Получаем текущий порт из sshd_config, учитывая и комментированные строки, берём последний активный (не закомментированный) или последний вообще
+CURRENT_PORT=$(grep -E '^\s*Port\s+[0-9]+' /etc/ssh/sshd_config | tail -n1 | awk '{print $2}')
+if [[ -z "$CURRENT_PORT" ]]; then
+  # Если не нашли явно, пробуем взять из любой строки с Port (даже закомментированной)
+  CURRENT_PORT=$(grep -E '^\s*#?\s*Port\s+[0-9]+' /etc/ssh/sshd_config | tail -n1 | awk '{print $2}')
+fi
 
 echo -e "${WHITE}🔹Изменяем порт SSH${RESET}"
+echo ""
+echo -e "${CYAN}Текущий SSH порт: $CURRENT_PORT${RESET}"
 echo -e "\n${RED}Введите новый SSH порт (оставьте пустым, чтобы не менять):${RESET} \c"
 read -r NEW_SSH_PORT
 
 if [[ -n "$NEW_SSH_PORT" ]]; then
     if [[ "$NEW_SSH_PORT" =~ ^[0-9]+$ && "$NEW_SSH_PORT" -ge 1 && "$NEW_SSH_PORT" -le 65535 ]]; then
-        # Проверяем, занят ли порт
+        # Проверяем, занят ли порт кем-то кроме sshd (если это текущий порт sshd - разрешаем)
         if ss -tln | grep -q ":$NEW_SSH_PORT\b"; then
-            echo -e "${PURPLE}❌ Порт $NEW_SSH_PORT уже занят.${RESET} ${GREEN}Изменения отменены.${RESET}"
-            # НЕ очищаем NEW_SSH_PORT, чтобы в итогах показать введённый порт
+            # Если новый порт совпадает с текущим портом, разрешаем без изменений
+            if [[ "$NEW_SSH_PORT" == "$CURRENT_PORT" ]]; then
+                echo -e "${GREEN}✅ Новый порт совпадает с текущим SSH портом. Изменений не требуется.${RESET}"
+                SSH_PORT_CHANGED=0
+            else
+                echo -e "${PURPLE}❌ Порт $NEW_SSH_PORT уже занят другим процессом.${RESET} ${GREEN}Изменения отменены.${RESET}"
+                NEW_SSH_PORT=$CURRENT_PORT
+            fi
         else
             sed -i "s/^#\?Port .*/Port $NEW_SSH_PORT/" /etc/ssh/sshd_config
             if systemctl restart sshd; then
-                echo -e "${GREEN}✅ SSH порт изменён.${RESET}"
+                echo -e "${GREEN}✅ SSH порт изменён на $NEW_SSH_PORT.${RESET}"
                 SSH_PORT_CHANGED=1
             else
                 echo -e "${PURPLE}⚠️ Не удалось перезапустить SSH!${RESET}"
+                NEW_SSH_PORT=$CURRENT_PORT
             fi
         fi
     else
