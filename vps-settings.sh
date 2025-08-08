@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v3.8"
+VERSION="v1.1"
 
 clear
 
@@ -36,12 +36,6 @@ echo ""
 apt update && apt install -y sudo >/dev/null 2>&1
 sudo apt update && sudo apt list --upgradable && sudo apt full-upgrade -y >/dev/null 2>&1
 
-# >>>> Проверка curl перед использованием
-if ! command -v curl >/dev/null 2>&1; then
-    echo -e "${CYAN}📦 Устанавливаем curl...${RESET}"
-    apt install -y curl
-fi
-
 clear
 echo ""
 echo "  ██████ ▄▄▄█████▓ ██▀███  ▓█████   ██████   ██████ "
@@ -62,17 +56,10 @@ echo ""
 echo -e "${WHITE}🔹Изменяем порт SSH${RESET}"
 echo -e "\n${RED}Введите новый SSH порт (оставьте пустым, чтобы не менять):${RESET} \c"
 read -r NEW_SSH_PORT
-
 if [[ -n "$NEW_SSH_PORT" ]]; then
     if [[ "$NEW_SSH_PORT" =~ ^[0-9]+$ && "$NEW_SSH_PORT" -ge 1 && "$NEW_SSH_PORT" -le 65535 ]]; then
-        # >>>> Проверка, занят ли порт
-        if ss -tuln | grep -q ":$NEW_SSH_PORT "; then
-            echo -e "${RED}❌ Порт $NEW_SSH_PORT уже занят. Изменения отменены.${RESET}"
-            NEW_SSH_PORT=$(grep ^Port /etc/ssh/sshd_config | awk '{print $2}')
-        else
-            sed -i "s/^#\?Port .*/Port $NEW_SSH_PORT/" /etc/ssh/sshd_config
-            systemctl restart sshd && echo -e "${GREEN}✅ SSH порт изменён.${RESET}" || echo -e "${RED}⚠️ Не удалось перезапустить SSH!${RESET}"
-        fi
+        sed -i "s/^#\?Port .*/Port $NEW_SSH_PORT/" /etc/ssh/sshd_config
+        systemctl restart sshd && echo -e "${GREEN}✅ SSH порт изменён.${RESET}" || echo -e "${RED}⚠️ Не удалось перезапустить SSH!${RESET}"
     else
         echo -e "${RED}❌ Некорректный порт. Изменения отменены.${RESET}"
         NEW_SSH_PORT=$(grep ^Port /etc/ssh/sshd_config | awk '{print $2}')
@@ -85,25 +72,14 @@ fi
 # 🔑 Смена root-пароля
 echo ""
 echo -e "${WHITE}🔹Изменяем пароль root${RESET}"
-
-# >>>> Подтверждение нового пароля root
-while true; do
-    echo -e "\n${RED}Введите новый пароль root (оставьте пустым, чтобы не менять):${RESET} \c"
-    read -rs NEW_ROOT_PASS
-    if [[ -z "$NEW_ROOT_PASS" ]]; then
-        echo -e "\n${GREEN}✅ Пароль root оставлен без изменений.${RESET}"
-        break
-    fi
-    echo -e "\n${RED}Повторите новый пароль:${RESET} \c"
-    read -rs NEW_ROOT_PASS_CONFIRM
-    if [[ "$NEW_ROOT_PASS" == "$NEW_ROOT_PASS_CONFIRM" ]]; then
-        echo "root:$NEW_ROOT_PASS" | chpasswd
-        echo -e "\n${GREEN}✅ Пароль root изменён.${RESET}"
-        break
-    else
-        echo -e "\n${RED}❌ Пароли не совпадают. Попробуйте ещё раз.${RESET}"
-    fi
-done
+echo -e "\n${RED}Введите новый пароль root (оставьте пустым, чтобы не менять):${RESET} \c"
+read -rs NEW_ROOT_PASS
+if [[ -n "$NEW_ROOT_PASS" ]]; then
+    echo "root:$NEW_ROOT_PASS" | chpasswd
+    echo -e "\n${GREEN}✅ Пароль root изменён.${RESET}"
+else
+    echo -e "\n${GREEN}✅ Пароль root оставлен без изменений.${RESET}"
+fi
 
 # 🚫 Отключение ICMP
 if ! grep -q "net.ipv4.icmp_echo_ignore_all" /etc/sysctl.conf; then
