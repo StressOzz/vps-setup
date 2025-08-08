@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v2.3"
+VERSION="v2.4"
 
 clear
 
@@ -13,6 +13,8 @@ RED='\033[1;91m'
 PURPLE='\033[1;35m'
 YELLOW='\033[1;33m'
 RESET='\033[0m'
+GRAY='\033[1;30m'
+BRIGHT_BLUE='\033[1;34m'
 
 print_banner() {
   echo ""
@@ -25,7 +27,7 @@ print_banner() {
   echo "░ ░▒  ░ ░    ░      ░▒ ░ ▒░ ░ ░  ░░ ░▒  ░ ░░ ░▒  ░ ░"
   echo "░  ░  ░    ░        ░░   ░    ░   ░  ░  ░  ░  ░  ░  "
   echo "      ░              ░        ░  ░      ░        ░  "
-  echo "                                                ${VERSION}"
+  echo "                                                ${GRAY}${VERSION}${RESET}"
 }
 print_banner
 echo ""
@@ -36,7 +38,7 @@ ROOT_PASS_CHANGED=0
 ICMP_DISABLED=0
 
 # 🔧 Обновление системы
-echo -e "\n${PURPLE}🔹 Обновляем систему...${RESET}"
+echo -e "\n${BRIGHT_BLUE}🔹${PURPLE}Обновляем систему...${RESET}"
 echo ""
 echo ""
 if ! apt update -qq; then
@@ -71,7 +73,7 @@ if [[ -z "$CURRENT_PORT" ]]; then
 fi
 
 echo ""
-echo -e "${WHITE}🔹Изменяем порт SSH${RESET}"
+echo -e "${BRIGHT_BLUE}🔹${WHITE}Изменяем порт SSH${RESET}"
 echo ""
 echo -e "${CYAN}Текущий SSH порт: $CURRENT_PORT${RESET}"
 echo -e "${RED}Введите новый SSH порт (оставьте пустым, чтобы не менять):${RESET} \c"
@@ -111,7 +113,7 @@ fi
 # 🔑 Смена root-пароля
 echo ""
 echo ""
-echo -e "${WHITE}🔹Изменяем пароль root${RESET}"
+echo -e "${BRIGHT_BLUE}🔹${WHITE}Изменяем пароль root${RESET}"
 echo -e "\n${CYAN}Пароль не будет отображаться при вводе.${RESET}"
 echo -e "${RED}Введите новый пароль root (оставьте пустым, чтобы не менять):${RESET} \c"
 read -rs NEW_ROOT_PASS
