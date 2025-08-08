@@ -36,6 +36,12 @@ echo ""
 apt update && apt install -y sudo >/dev/null 2>&1
 sudo apt update && sudo apt list --upgradable && sudo apt full-upgrade -y >/dev/null 2>&1
 
+# >>>> Проверка curl перед использованием
+if ! command -v curl >/dev/null 2>&1; then
+    echo -e "${CYAN}📦 Устанавливаем curl...${RESET}"
+    apt install -y curl
+fi
+
 clear
 echo ""
 echo "  ██████ ▄▄▄█████▓ ██▀███  ▓█████   ██████   ██████ "
