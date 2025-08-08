@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v2.1"
+VERSION="v2.2"
 
 clear
 
@@ -171,7 +171,6 @@ if (( SSH_PORT_CHANGED + ROOT_PASS_CHANGED + ICMP_DISABLED > 0 )); then
         echo ""
     fi
 else
-    echo ""
     echo -e "\n${GREEN}✅ Изменений не было — перезагрузка не нужна.${RESET}"
     echo ""
 fi
