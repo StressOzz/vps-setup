@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.2"
+VERSION="v1.3"
 
 clear
 
@@ -149,7 +149,7 @@ echo -e "🌐 ${CYAN}IP сервера:${RESET}     ${YELLOW}$IP_ADDR${RESET}"
 echo -e "📡 ${CYAN}Порт SSH:${RESET}       ${YELLOW}$NEW_SSH_PORT${RESET}"
 [[ -n "$NEW_ROOT_PASS" ]] && echo -e "🔑 ${CYAN}Пароль root:${RESET}    ${YELLOW}$NEW_ROOT_PASS${RESET}"
 echo -e "${WHITE}==============================${RESET}"
-echo ""
+echo "\n${BRIGHT_BLUE}Если возникла ошибка,${RESET} ${RED}НЕ${RESET} ${BRIGHT_BLUE}перезагружайте систему — просто запустите скрипт повторно.${RESET}"
 
 # 🔁 Перезагрузка (только если были изменения)
 if (( SSH_PORT_CHANGED + ROOT_PASS_CHANGED + ICMP_DISABLED > 0 )); then
