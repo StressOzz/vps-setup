@@ -1,15 +1,11 @@
 #!/bin/bash
 
-# Набор ярких цветов ANSI
-COLORS=(
-  '\033[1;31m' # Красный
-  '\033[1;32m' # Зелёный
-  '\033[1;33m' # Жёлтый
-  '\033[1;34m' # Синий
-  '\033[1;35m' # Фиолетовый
-  '\033[1;36m' # Голубой
-  '\033[1;37m' # Белый
-)
+# Функция вывода символа с заданным оттенком серого (0-255)
+gray() {
+    local shade=$1
+    printf "\033[38;2;${shade};${shade};${shade}m"
+}
+
 RESET='\033[0m'
 
 # ASCII текст
@@ -25,8 +21,17 @@ TEXT=$(cat << 'EOF'
 EOF
 )
 
-# Печать текста: каждая строка в своём случайном цвете
-while IFS= read -r line; do
-    color="${COLORS[$RANDOM % ${#COLORS[@]}]}"
-    echo -e "${color}${line}${RESET}"
-done <<< "$TEXT"
+STEPS=20  # Количество градаций (от чёрного до белого)
+DELAY=0.03  # Задержка между шагами
+
+# Печать с анимацией появления
+for step in $(seq 0 $STEPS); do
+    shade=$(( step * 255 / STEPS ))
+    gray $shade
+    clear
+    echo "$TEXT"
+    sleep $DELAY
+done
+
+# Сброс цвета
+echo -e "$RESET"
