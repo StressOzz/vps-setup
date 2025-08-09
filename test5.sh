@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Функция: цвет по позиции (радужный градиент)
+# Функция: цвет по позиции (радужный)
 rainbow() {
     local pos=$1
     local r=$(( (pos * 7) % 255 ))
@@ -10,10 +10,10 @@ rainbow() {
 }
 
 RESET='\033[0m'
-DELAY=0.004  # Задержка для анимации
+DELAY=0.004
 
 # ASCII-текст
-TEXT=$(cat << 'EOF'
+read -r -d '' TEXT << 'EOF'
 ███████╗████████╗██████╗ ███████╗███████╗███████╗
 ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔════╝██╔════╝
 ███████╗   ██║   ██████╔╝█████╗  ███████╗███████╗
@@ -21,9 +21,7 @@ TEXT=$(cat << 'EOF'
 ███████║   ██║   ██║  ██║███████╗███████║███████║
 ╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝
 EOF
-)
 
-# Разбиваем на строки
 IFS=$'\n' read -rd '' -a LINES <<< "$TEXT"
 
 rows=${#LINES[@]}
@@ -32,34 +30,41 @@ for line in "${LINES[@]}"; do
     (( ${#line} > cols )) && cols=${#line}
 done
 
-# Массив для статуса символов (0 = пусто, 1 = показано)
 declare -A shown
-for r in $(seq 0 $rows); do
-    for c in $(seq 0 $cols); do
+for (( r=0; r<rows; r++ )); do
+    for (( c=0; c<cols; c++ )); do
         shown["$r,$c"]=0
     done
 done
 
-# Максимальная диагональ
 max_diag=$((rows + cols - 2))
 
-# Появление по диагоналям
-for diag in $(seq 0 $max_diag); do
+for (( diag=0; diag<=max_diag; diag++ )); do
     clear
-    for r in $(seq 0 $rows); do
+    for (( r=0; r<rows; r++ )); do
         out=""
-        for c in $(seq 0 $cols); do
-            if (( r < rows && c < ${#LINES[$r]} )); then
-                if (( r + c <= diag )); then
-                    shown["$r,$c"]=1
-                fi
-                if (( shown["$r,$c"] == 1 )); then
-                    out+="$(rainbow $((r*cols+c)))${LINES[$r]:$c:1}"
-                else
-                    out+=" "
-                fi
+        for (( c=0; c<${#LINES[$r]}; c++ )); do
+            if (( r + c <= diag )); then
+                shown["$r,$c"]=1
+            fi
+            if (( shown["$r,$c"] == 1 )); then
+                out+="$(rainbow $((r*cols+c)))${LINES[$r]:$c:1}"
+            else
+                out+=" "
             fi
         done
         out+=$RESET
         echo -e "$out"
     done
+    sleep $DELAY
+done
+
+clear
+for (( r=0; r<rows; r++ )); do
+    out=""
+    for (( c=0; c<${#LINES[$r]}; c++ )); do
+        out+="$(rainbow $((r*cols+c)))${LINES[$r]:$c:1}"
+    done
+    out+=$RESET
+    echo -e "$out"
+done
