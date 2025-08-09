@@ -12,10 +12,7 @@ text=(
 "      ░              ░        ░  ░      ░        ░  "
 )
 
-# Массив цветов ANSI (код цвета - цифра после \e[ )
 colors=(31 32 33 34 35 36 91 92 93 94 95 96)
-
-# Функция для рандомного цвета из массива colors
 
 rand_color() {
   echo ${colors[$RANDOM % ${#colors[@]}]}
@@ -25,8 +22,13 @@ color_variant_1() {
   for line in "${text[@]}"; do
     for ((i=0; i<${#line}; i++)); do
       char="${line:$i:1}"
-      c=$(rand_color)
-      echo -ne "\e[${c}m${char}\e[0m"
+      if [[ "$char" == " " ]]; then
+        # Просто пробел без цвета
+        echo -n " "
+      else
+        c=$(rand_color)
+        echo -ne "\e[${c}m${char}\e[0m"
+      fi
     done
     echo
   done
