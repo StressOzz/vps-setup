@@ -1,6 +1,15 @@
 #!/bin/bash
 
-DELAY=0.1
+RESET='\033[0m'
+STEPS=10
+DELAY=0.03
+
+# Функция цвета градации серого (0..255)
+gray() {
+    local step=$1
+    local val=$(( step * 255 / STEPS ))
+    printf "\033[38;2;${val};${val};${val}m"
+}
 
 TEXT='███████╗████████╗██████╗ ███████╗███████╗███████╗
 ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔════╝██╔════╝
@@ -9,8 +18,10 @@ TEXT='███████╗████████╗██████╗ �
 ███████║   ██║   ██║  ██║███████╗███████║███████║
 ╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝'
 
-# Разбиваем на строки и выводим по одной
 while IFS= read -r line; do
-    echo "$line"
-    sleep "$DELAY"
+    for (( step=0; step<=STEPS; step++ )); do
+        clear
+        echo -ne "$(gray $step)$line$RESET"
+        sleep $DELAY
+    done
 done <<< "$TEXT"
