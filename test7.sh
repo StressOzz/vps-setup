@@ -24,6 +24,8 @@ EOF
 
 IFS=$'\n' read -rd '' -a LINES <<< "$TEXT"
 
+clear
+
 # Появление построчно
 for (( r=0; r<${#LINES[@]}; r++ )); do
     for (( step=0; step<=STEPS; step++ )); do
