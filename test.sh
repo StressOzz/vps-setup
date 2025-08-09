@@ -16,11 +16,11 @@ text=(
 colors=(31 32 33 34 35 36 91 92 93 94 95 96)
 
 # Функция для рандомного цвета из массива colors
+
 rand_color() {
   echo ${colors[$RANDOM % ${#colors[@]}]}
 }
 
-# Вариант 1: каждый символ случайного цвета
 color_variant_1() {
   for line in "${text[@]}"; do
     for ((i=0; i<${#line}; i++)); do
@@ -31,3 +31,5 @@ color_variant_1() {
     echo
   done
 }
+
+color_variant_1
