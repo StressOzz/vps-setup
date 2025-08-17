@@ -264,12 +264,19 @@ if echo "$ADD_RESULT" | grep -q '"success":true'; then
     qrencode -o /root/vless_qr.png "$VLESS_LINK"
     echo -e "QR-код также сохранён в файл: /root/vless_qr.png" >&3
 
-    {
-    echo "Ваш VPN ключ:"
-    echo "$VLESS_LINK"
-    echo ""
-    echo "QR PNG сохранён: /root/vless_qr.png"
-    } >> /root/3x-ui.txt
+{
+  echo "=== Данные панели 3x-ui ==="
+  echo "Адрес панели: http://${SERVER_IP}:${PORT}/${WEBPATH}"
+  echo "Логин: ${USERNAME}"
+  echo "Пароль: ${PASSWORD}"
+  echo ""
+  echo "=== VLESS Reality ==="
+  echo "Ваш VPN ключ:"
+  echo "$VLESS_LINK"
+  echo ""
+  echo "QR PNG сохранён: /root/vless_qr.png"
+} >> /root/3x-ui.txt
+
 else
     echo -e "${red}Ошибка при добавлении инбаунда через API:${plain}" >&3
     echo "$ADD_RESULT" >&3
