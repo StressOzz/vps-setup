@@ -202,7 +202,7 @@ VLESS_LINK="vless://${UUID}@${SERVER_IP}:443?type=tcp&security=reality&encryptio
 
 # Финальный вывод
 echo -e "\n${green}=== Установка завершена! ===${plain}"
-echo -e "${cyan}Адрес панели: ${blue}http://${SERVER_IP}:${PORT}/${WEBPATH}${plain}"
+echo -e "${cyan}Адрес панели: ${yellow}http://${SERVER_IP}:${PORT}/${WEBPATH}${plain}"
 echo -e "${cyan}Логин: ${yellow}${USERNAME}${plain}"
 echo -e "${cyan}Пароль: ${yellow}${PASSWORD}${plain}"
 echo "$VLESS_LINK" > /root/3x-ui.txt
