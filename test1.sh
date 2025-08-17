@@ -1,5 +1,7 @@
 #!/bin/bash
 
+clear
+
 # Проверка root
 if [[ $EUID -ne 0 ]]; then
   echo "Ошибка: скрипт нужно запускать от root" >&2
@@ -179,7 +181,7 @@ PRIVATE_KEY=$(echo "$KEYS" | grep -i "Private" | sed -E 's/.*key:\s*//')
 PUBLIC_KEY=$(echo "$KEYS" | grep -i "Public" | sed -E 's/.*key:\s*//')
 SHORT_ID=$(head -c 8 /dev/urandom | xxd -p)
 UUID=$(cat /proc/sys/kernel/random/uuid)
-EMAIL=$(tr -dc 'a-z0-9' </dev/urandom | head -c 8)
+EMAIL=""
 
 # === Фиксированный SNI/DEST ===
 BEST_DOMAIN="docscenter.su"
