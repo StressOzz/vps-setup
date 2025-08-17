@@ -227,6 +227,19 @@ SNIFFING_JSON=$(jq -nc '{
   destOverride: ["http", "tls"]
 }')
 
+# === Определяем страну VPS для remark ===
+COUNTRY=$(curl -s ifconfig.io/country_code || echo "UNK")
+case "$COUNTRY" in
+    DE) COUNTRY_NAME="GER" ;;
+    FI) COUNTRY_NAME="FIN" ;;
+    NL) COUNTRY_NAME="NLD" ;;
+    FR) COUNTRY_NAME="FRA" ;;
+    RU) COUNTRY_NAME="RUS" ;;
+    *) COUNTRY_NAME="$COUNTRY" ;;
+esac
+
+remark="Vless${COUNTRY_NAME}"
+
 # Добавление инбаунда
 ADD_RESULT=$(curl -s -b "$COOKIE_JAR" -X POST "http://127.0.0.1:${PORT}/${WEBPATH}/panel/api/inbounds/add" \
   -H "Content-Type: application/json" \
@@ -234,9 +247,10 @@ ADD_RESULT=$(curl -s -b "$COOKIE_JAR" -X POST "http://127.0.0.1:${PORT}/${WEBPAT
     --argjson settings "$SETTINGS_JSON" \
     --argjson stream "$STREAM_SETTINGS_JSON" \
     --argjson sniffing "$SNIFFING_JSON" \
+    --arg remark "$remark" \
     '{
       enable: true,
-      remark: "reality443-auto",
+      remark: $remark,
       listen: "0.0.0.0",
       port: 443,
       protocol: "vless",
