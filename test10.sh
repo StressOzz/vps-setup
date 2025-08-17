@@ -23,7 +23,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 echo -e "${green}Root проверка пройдена.${plain}"
 
-# Проверяем наличие x-ui
+# Проверка существующей панели
 echo -e "${yellow}Проверка существующей панели x-ui...${plain}"
 if command -v x-ui &> /dev/null; then
     echo -e "${green}Обнаружена установленная панель x-ui.${plain}"
@@ -37,7 +37,7 @@ if command -v x-ui &> /dev/null; then
     fi
 
     echo -e "${yellow}Удаляем старую x-ui...${plain}"
-    /usr/local/x-ui/x-ui uninstall -y || true
+    systemctl stop x-ui 2>/dev/null
     rm -rf /usr/local/x-ui /etc/x-ui /usr/bin/x-ui /etc/systemd/system/x-ui.service
     systemctl daemon-reexec
     systemctl daemon-reload
@@ -57,9 +57,8 @@ gen_random_string() {
 USERNAME=$(gen_random_string 10)
 PASSWORD=$(gen_random_string 10)
 WEBPATH=$(gen_random_string 18)
-echo -e "${green}Логин: $USERNAME, Пароль: $PASSWORD, Путь веб-интерфейса: $WEBPATH${plain}"
 
-# Определяем ОС
+# Определение ОС
 echo -e "${yellow}Определяем операционную систему...${plain}"
 if [[ -f /etc/os-release ]]; then
     source /etc/os-release
@@ -157,9 +156,9 @@ UUID=$(cat /proc/sys/kernel/random/uuid)
 EMAIL=""
 
 BEST_DOMAIN="docscenter.su"
-echo -e "${green}Используется фиксированный домен: ${BEST_DOMAIN}${plain}"
 
-# Авторизация через cookie и добавление инбаунда
+
+# Авторизация и добавление инбаунда
 COOKIE_JAR=$(mktemp)
 LOGIN_RESPONSE=$(curl -s -c "$COOKIE_JAR" -X POST "http://127.0.0.1:${PORT}/${WEBPATH}/login" \
   -H "Content-Type: application/json" \
@@ -202,12 +201,8 @@ SERVER_IP=$(curl -s --max-time 3 https://api.ipify.org || curl -s --max-time 3 h
 VLESS_LINK="vless://${UUID}@${SERVER_IP}:443?type=tcp&security=reality&encryption=none&flow=xtls-rprx-vision&sni=${BEST_DOMAIN}&fp=chrome&pbk=${PUBLIC_KEY}&sid=${SHORT_ID}&spx=%2F#${EMAIL}"
 
 # Финальный вывод
-echo -e "\n${cyan}=== Установка завершена ===${plain}"
-echo -e "${green}Панель управления 3X-UI доступна:${plain}"
-echo -e "${yellow}Адрес:${plain} ${cyan}http://${SERVER_IP}:${PORT}/${WEBPATH}${plain}"
-echo -e "${yellow}Логин:${plain} ${cyan}${USERNAME}${plain}"
-echo -e "${yellow}Пароль:${plain} ${cyan}${PASSWORD}${plain}"
-echo -e "${yellow}VLESS Reality ключ:${plain} ${cyan}${VLESS_LINK}${plain}"
-echo -e "${green}Все данные сохранены в лог-файл: /root/3x-ui.txt и /var/log/3x-ui_install_log.txt${plain}"
-
+echo -e "\n${green}=== Установка завершена! ===${plain}"
+echo -e "${cyan}Адрес панели: ${blue}http://${SERVER_IP}:${PORT}/${WEBPATH}${plain}"
+echo -e "${cyan}Логин: ${yellow}${USERNAME}${plain}"
+echo -e "${cyan}Пароль: ${yellow}${PASSWORD}${plain}"
 echo "$VLESS_LINK" > /root/3x-ui.txt
