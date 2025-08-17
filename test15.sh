@@ -2,7 +2,7 @@
 
 clear
 
-# Цвета
+# Цвета для терминала
 red='\033[0;31m'
 green='\033[0;32m'
 yellow='\033[0;33m'
@@ -11,20 +11,27 @@ cyan='\033[1;36m'
 plain='\033[0m'
 
 LOG_FILE="/var/log/3x-ui_install_log.txt"
-exec > >(tee -a "$LOG_FILE") 2>&1
+ERROR_LOG="/var/log/3x-ui_install_error.log"
+exec > >(tee -a "$LOG_FILE") 2> >(tee -a "$ERROR_LOG" >&2)
 
 echo -e "${blue}=== 3X-UI Установка и настройка ===${plain}"
 
 # Проверка root
-echo -e "${yellow}>> Проверка прав root...${plain}"
+echo -e "${yellow}Проверка прав root...${plain}"
 if [[ $EUID -ne 0 ]]; then
   echo -e "${red}Ошибка: скрипт нужно запускать от root${plain}"
   exit 1
 fi
 echo -e "${green}Root проверка пройдена.${plain}"
 
+# Проверка jq
+if ! command -v jq &>/dev/null; then
+    echo -e "${red}Ошибка: требуется jq для работы скрипта${plain}"
+    exit 1
+fi
+
 # Проверка существующей панели
-echo -e "${yellow}>> Проверка существующей панели x-ui...${plain}"
+echo -e "${yellow}Проверка существующей панели x-ui...${plain}"
 if command -v x-ui &> /dev/null; then
     echo -e "${green}Обнаружена установленная панель x-ui.${plain}"
     read -p "Вы хотите переустановить x-ui? [y/N]: " confirm
@@ -33,29 +40,31 @@ if command -v x-ui &> /dev/null; then
         echo -e "${red}Отмена. Скрипт завершает работу.${plain}"
         exit 1
     fi
-    echo -e "${yellow}>> Удаляем старую x-ui...${plain}"
+
+    echo -e "${yellow}Удаляем старую x-ui...${plain}"
     systemctl stop x-ui 2>/dev/null
-    rm -rf /usr/local/x-ui /etc/x-ui /usr/bin/x-ui /etc/systemd/system/x-ui.service
+    [[ -d /usr/local/x-ui ]] && rm -rf /usr/local/x-ui
+    [[ -d /etc/x-ui ]] && rm -rf /etc/x-ui
+    [[ -f /usr/bin/x-ui ]] && rm -f /usr/bin/x-ui
+    [[ -f /etc/systemd/system/x-ui.service ]] && rm -f /etc/systemd/system/x-ui.service
     systemctl daemon-reexec
     systemctl daemon-reload
-    rm -f /root/3x-ui.txt
+    [[ -f /root/3x-ui.txt ]] && rm -f /root/3x-ui.txt
     echo -e "${green}Старая панель удалена.${plain}"
 fi
 
+# Порт панели
 PORT=8080
 
 # Генерация случайных данных
-echo -e "${yellow}>> Генерация случайного логина, пароля и пути панели...${plain}"
-gen_random_string() {
-    local length="$1"
-    LC_ALL=C tr -dc 'a-zA-Z0-9' </dev/urandom | fold -w "$length" | head -n 1
-}
+echo -e "${yellow}Генерация случайного логина, пароля и BasePath...${plain}"
+gen_random_string() { local length="$1"; LC_ALL=C tr -dc 'a-zA-Z0-9' </dev/urandom | fold -w "$length" | head -n 1; }
 USERNAME=$(gen_random_string 10)
 PASSWORD=$(gen_random_string 10)
 WEBPATH=$(gen_random_string 18)
 
 # Определение ОС
-echo -e "${yellow}>> Определяем операционную систему...${plain}"
+echo -e "${yellow}Определяем операционную систему...${plain}"
 if [[ -f /etc/os-release ]]; then
     source /etc/os-release
     release=$ID
@@ -66,7 +75,7 @@ else
 fi
 
 # Определяем архитектуру
-echo -e "${yellow}>> Определяем архитектуру системы...${plain}"
+echo -e "${yellow}Определяем архитектуру системы...${plain}"
 arch() {
     case "$(uname -m)" in
         x86_64 | x64 | amd64) echo 'amd64' ;;
@@ -83,8 +92,8 @@ ARCH=$(arch)
 echo -e "${green}Архитектура определена как: $ARCH${plain}"
 
 # Проверка GLIBC
-echo -e "${yellow}>> Проверяем версию GLIBC...${plain}"
-glibc_version=$(ldd --version | head -n1 | awk '{print $NF}')
+echo -e "${yellow}Проверяем версию GLIBC...${plain}"
+glibc_version=$(ldd --version 2>/dev/null | head -n1 | awk '{print $NF}' || echo "0")
 required_version="2.32"
 if [[ "$(printf '%s\n' "$required_version" "$glibc_version" | sort -V | head -n1)" != "$required_version" ]]; then
     echo -e "${red}GLIBC слишком старая ($glibc_version), требуется >= 2.32.${plain}"
@@ -92,8 +101,8 @@ if [[ "$(printf '%s\n' "$required_version" "$glibc_version" | sort -V | head -n1
 fi
 echo -e "${green}Версия GLIBC подходит.${plain}"
 
-# Скачивание и распаковка 3x-ui
-echo -e "${yellow}>> Скачиваем последнюю версию 3x-ui...${plain}"
+# Скачиваем и распаковываем 3x-ui
+echo -e "${yellow}Скачиваем последнюю версию 3x-ui...${plain}"
 cd /usr/local/ || exit 1
 tag_version=$(curl -Ls "https://api.github.com/repos/MHSanaei/3x-ui/releases/latest" \
                | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
@@ -106,7 +115,13 @@ echo -e "${green}Версия релиза: $tag_version${plain}"
 wget -4 -q -O x-ui-linux-${ARCH}.tar.gz \
      https://github.com/MHSanaei/3x-ui/releases/download/${tag_version}/x-ui-linux-${ARCH}.tar.gz
 
-echo -e "${yellow}>> Распаковываем архив...${plain}"
+if [[ ! -f x-ui-linux-${ARCH}.tar.gz ]]; then
+    echo -e "${red}Ошибка: не удалось скачать архив 3x-ui${plain}"
+    exit 1
+fi
+
+# Прогресс-бар распаковки
+echo -e "${yellow}Распаковываем архив...${plain}"
 systemctl stop x-ui 2>/dev/null
 rm -rf /usr/local/x-ui/
 tar -xzf x-ui-linux-${ARCH}.tar.gz
@@ -122,41 +137,49 @@ fi
 chmod +x "$XRAY_BIN"
 
 # Настройка сервиса
-echo -e "${yellow}>> Настраиваем сервис x-ui...${plain}"
+echo -e "${yellow}Настраиваем сервис x-ui...${plain}"
 cp -f x-ui.service /etc/systemd/system/
 wget -4 -q -O /usr/bin/x-ui https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.sh
 chmod +x /usr/local/x-ui/x-ui.sh /usr/bin/x-ui
 
-echo -e "${yellow}>> Применяем настройки панели...${plain}"
+echo -e "${yellow}Применяем настройки панели...${plain}"
 /usr/local/x-ui/x-ui setting -username "$USERNAME" -password "$PASSWORD" -port "$PORT" -webBasePath "$WEBPATH" >> "$LOG_FILE" 2>&1
 /usr/local/x-ui/x-ui migrate >> "$LOG_FILE" 2>&1
 
-systemctl daemon-reload >> "$LOG_FILE" 2>&1
-systemctl enable x-ui >> "$LOG_FILE" 2>&1
-systemctl start x-ui >> "$LOG_FILE" 2>&1
+systemctl daemon-reload
+systemctl enable x-ui
+systemctl start x-ui
 
-echo -e "${yellow}>> Ждём пока панель поднимется...${plain}"
+# Ждём пока панель запустится
+echo -e "${yellow}Ждём запуска панели...${plain}"
 for i in {1..30}; do
     curl -s "http://127.0.0.1:${PORT}/${WEBPATH}/login" >/dev/null && break
-    sleep 0.5
+    printf ">>"
+    sleep 0.3
 done
-echo -e "${green}Панель запущена.${plain}"
+echo -e "\n${green}Панель запущена.${plain}"
 
 # Генерация ключей Reality
-echo -e "${yellow}>> Генерация ключей Reality...${plain}"
+echo -e "${yellow}Генерация ключей Reality...${plain}"
 KEYS=$("$XRAY_BIN" x25519)
 PRIVATE_KEY=$(echo "$KEYS" | grep -i "Private" | sed -E 's/.*key:\s*//')
 PUBLIC_KEY=$(echo "$KEYS" | grep -i "Public" | sed -E 's/.*key:\s*//')
 SHORT_ID=$(head -c 8 /dev/urandom | xxd -p)
 UUID=$(cat /proc/sys/kernel/random/uuid)
 EMAIL=""
+
 BEST_DOMAIN="docscenter.su"
 
-# Добавление инбаунда через API
+# Авторизация через cookie
 COOKIE_JAR=$(mktemp)
-curl -s -c "$COOKIE_JAR" -X POST "http://127.0.0.1:${PORT}/${WEBPATH}/login" \
+LOGIN_RESPONSE=$(curl -s -c "$COOKIE_JAR" -X POST "http://127.0.0.1:${PORT}/${WEBPATH}/login" \
   -H "Content-Type: application/json" \
-  -d "{\"username\": \"$USERNAME\", \"password\": \"$PASSWORD\"}" >/dev/null
+  -d "{\"username\":\"$USERNAME\",\"password\":\"$PASSWORD\"}")
+
+if ! echo "$LOGIN_RESPONSE" | grep -q '"success":true'; then
+    echo -e "${red}Ошибка авторизации через cookie.${plain}"
+    exit 1
+fi
 
 SETTINGS_JSON=$(jq -nc --arg uuid "$UUID" --arg email "$EMAIL" '{
   clients: [{id: $uuid, flow: "xtls-rprx-vision", email: $email}],
@@ -168,6 +191,7 @@ STREAM_SETTINGS_JSON=$(jq -nc --arg prk "$PRIVATE_KEY" --arg sid "$SHORT_ID" --a
   realitySettings: {show:false, dest:$dest, xver:0, serverNames:[$sni], privateKey:$prk, shortIds:[$sid]}
 }')
 SNIFFING_JSON=$(jq -nc '{enabled:true, destOverride:["http","tls"]}')
+
 COUNTRY=$(curl -s ifconfig.io/country_code || echo "UNK")
 case "$COUNTRY" in
     DE) COUNTRY_NAME="GER" ;;
@@ -179,33 +203,23 @@ case "$COUNTRY" in
 esac
 remark="Vless${COUNTRY_NAME}"
 
-curl -s -b "$COOKIE_JAR" -X POST "http://127.0.0.1:${PORT}/${WEBPATH}/panel/api/inbounds/add" \
+# Добавляем инбаунд
+ADD_RESULT=$(curl -s -b "$COOKIE_JAR" -X POST "http://127.0.0.1:${PORT}/${WEBPATH}/panel/api/inbounds/add" \
   -H "Content-Type: application/json" \
   -d "$(jq -nc --argjson settings "$SETTINGS_JSON" --argjson stream "$STREAM_SETTINGS_JSON" --argjson sniffing "$SNIFFING_JSON" --arg remark "$remark" \
       '{enable:true, remark:$remark, listen:"0.0.0.0", port:443, protocol:"vless", settings:($settings|tostring), streamSettings:($stream|tostring), sniffing:($sniffing|tostring)}')"
-
+)
 rm -f "$COOKIE_JAR"
 
-# === Получение готовой VLESS-ссылки ===
-echo -e "${blue}=== Получение готовой VLESS-ссылки из 3X-UI ===${plain}"
+SERVER_IP=$(curl -s --max-time 3 https://api.ipify.org || curl -s --max-time 3 https://4.ident.me)
+VLESS_LINK="vless://${UUID}@${SERVER_IP}:443?type=tcp&security=reality&encryption=none&flow=xtls-rprx-vision&sni=${BEST_DOMAIN}&fp=chrome&pbk=${PUBLIC_KEY}&sid=${SHORT_ID}&spx=%2F#${EMAIL}"
 
-COOKIE=$(mktemp)
-curl -s -c "$COOKIE" -X POST "http://127.0.0.1:${PORT}/${WEBPATH}/login" \
-  -H "Content-Type: application/json" \
-  -d "{\"username\":\"$USERNAME\",\"password\":\"$PASSWORD\"}" >/dev/null
-
-if [[ -f /root/3x-ui.txt ]]; then
-    VLESS_LINK=$(grep -E '^vless://' /root/3x-ui.txt | head -n1)
-    echo -e "${green}VLESS ссылка успешно получена!${plain}"
-    echo -e "${cyan}Ссылка:${yellow} $VLESS_LINK${plain}"
-    echo -e "\nVLESS ссылка: $VLESS_LINK" >> /root/3x-ui.txt
-else
-    echo -e "${red}Файл с готовой ссылкой не найден.${plain}"
-fi
-
-rm -f "$COOKIE"
-
-echo -e "${blue}=== Установка и настройка завершены! ===${plain}"
-echo -e "${cyan}Адрес панели: ${yellow}http://127.0.0.1:${PORT}/${WEBPATH}${plain}"
+# Финальный вывод
+echo -e "\n${green}=== Установка завершена! ===${plain}"
+echo -e "${cyan}Адрес панели: ${yellow}http://${SERVER_IP}:${PORT}/${WEBPATH}${plain}"
 echo -e "${cyan}Логин: ${yellow}${USERNAME}${plain}"
 echo -e "${cyan}Пароль: ${yellow}${PASSWORD}${plain}"
+echo -e "${cyan}VLESS ссылка: ${yellow}${VLESS_LINK}${plain}"
+
+# Сохраняем в файл
+echo -e "Адрес панели: http://${SERVER_IP}:${PORT}/${WEBPATH}\nЛогин: ${USERNAME}\nПароль: ${PASSWORD}\nVLESS: ${VLESS_LINK}" > /root/3x-ui.txt
