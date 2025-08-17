@@ -284,8 +284,6 @@ if echo "$ADD_RESULT" | grep -q '"success":true'; then
     echo "$VLESS_LINK"
     echo ""
     echo "QR PNG сохранён: /root/vless_qr.png"
-    echo "Инструкции по настройке клиентов:"
-    echo "https://wiki.yukikras.net/ru/nastroikavpn"
     } >> /root/3x-ui.txt
 else
     echo -e "${red}Ошибка при добавлении инбаунда через API:${plain}" >&3
