@@ -160,13 +160,24 @@ for i in {1..30}; do
   sleep 0.5
 done
 
+# === Определяем страну VPS ===
+COUNTRY=$(curl -s ifconfig.io/country_code || echo "UNK")
+case "$COUNTRY" in
+    DE) COUNTRY_NAME="GER" ;;
+    FI) COUNTRY_NAME="FIN" ;;
+    NL) COUNTRY_NAME="NLD" ;;
+    FR) COUNTRY_NAME="FRA" ;;
+    RU) COUNTRY_NAME="RUS" ;;
+    *) COUNTRY_NAME="$COUNTRY" ;;
+esac
+
 # Генерация Reality ключей
 KEYS=$("$XRAY_BIN" x25519)
 PRIVATE_KEY=$(echo "$KEYS" | grep -i "Private" | sed -E 's/.*key:\s*//')
 PUBLIC_KEY=$(echo "$KEYS" | grep -i "Public" | sed -E 's/.*key:\s*//')
 SHORT_ID=$(head -c 8 /dev/urandom | xxd -p)
 UUID=$(cat /proc/sys/kernel/random/uuid)
-EMAIL=""
+EMAIL="${COUNTRY_NAME}"
 
 # === Фиксированный SNI/DEST ===
 BEST_DOMAIN="docscenter.su"
@@ -214,18 +225,8 @@ SNIFFING_JSON=$(jq -nc '{
   destOverride: ["http", "tls"]
 }')
 
-# === Определяем страну VPS для remark ===
-COUNTRY=$(curl -s ifconfig.io/country_code || echo "UNK")
-case "$COUNTRY" in
-    DE) COUNTRY_NAME="GER" ;;
-    FI) COUNTRY_NAME="FIN" ;;
-    NL) COUNTRY_NAME="NLD" ;;
-    FR) COUNTRY_NAME="FRA" ;;
-    RU) COUNTRY_NAME="RUS" ;;
-    *) COUNTRY_NAME="$COUNTRY" ;;
-esac
 
-remark="Vless${COUNTRY_NAME}"
+remark="Vless"
 
 # Добавление инбаунда
 ADD_RESULT=$(curl -s -b "$COOKIE_JAR" -X POST "http://127.0.0.1:${PORT}/${WEBPATH}/panel/api/inbounds/add" \
@@ -254,7 +255,8 @@ if echo "$ADD_RESULT" | grep -q '"success":true'; then
     systemctl restart x-ui >>"$LOG_FILE" 2>&1
 
     SERVER_IP=$(curl -s --max-time 3 https://api.ipify.org || curl -s --max-time 3 https://4.ident.me)
-    VLESS_LINK="vless://${UUID}@${SERVER_IP}:443?type=tcp&security=reality&pbk=&fp=chrome&sni=${BEST_DOMAIN}&sid=${SHORT_ID}&spx=%2F&flow=xtls-rprx-vision#${remark}"
+    VLESS_LINK="vless://${UUID}@${SERVER_IP}:443?type=tcp&security=reality&pbk=${PUBLIC_KEY}&fp=chrome&sni=${BEST_DOMAIN}&sid=${SHORT_ID}&spx=%2F&flow=xtls-rprx-vision#${remark}"
+    
 
     echo -e "\n\033[0;32mVLESS Reality успешно создан!\033[0m" >&3
     echo -e "\033[1;36mВаш VPN ключ:\033[0m" >&3
