@@ -160,24 +160,13 @@ for i in {1..30}; do
   sleep 0.5
 done
 
-# === Определяем страну VPS ===
-COUNTRY=$(curl -s ifconfig.io/country_code || echo "UNK")
-case "$COUNTRY" in
-    DE) COUNTRY_NAME="GER" ;;
-    FI) COUNTRY_NAME="FIN" ;;
-    NL) COUNTRY_NAME="NLD" ;;
-    FR) COUNTRY_NAME="FRA" ;;
-    RU) COUNTRY_NAME="RUS" ;;
-    *) COUNTRY_NAME="$COUNTRY" ;;
-esac
-
 # Генерация Reality ключей
 KEYS=$("$XRAY_BIN" x25519)
 PRIVATE_KEY=$(echo "$KEYS" | grep -i "Private" | sed -E 's/.*key:\s*//')
 PUBLIC_KEY=$(echo "$KEYS" | grep -i "Public" | sed -E 's/.*key:\s*//')
 SHORT_ID=$(head -c 8 /dev/urandom | xxd -p)
 UUID=$(cat /proc/sys/kernel/random/uuid)
-EMAIL="${COUNTRY_NAME}"
+EMAIL=""
 
 # === Фиксированный SNI/DEST ===
 BEST_DOMAIN="docscenter.su"
@@ -225,8 +214,18 @@ SNIFFING_JSON=$(jq -nc '{
   destOverride: ["http", "tls"]
 }')
 
+# === Определяем страну VPS для remark ===
+COUNTRY=$(curl -s ifconfig.io/country_code || echo "UNK")
+case "$COUNTRY" in
+    DE) COUNTRY_NAME="GER" ;;
+    FI) COUNTRY_NAME="FIN" ;;
+    NL) COUNTRY_NAME="NLD" ;;
+    FR) COUNTRY_NAME="FRA" ;;
+    RU) COUNTRY_NAME="RUS" ;;
+    *) COUNTRY_NAME="$COUNTRY" ;;
+esac
 
-remark="Vless"
+remark="Vless${COUNTRY_NAME}"
 
 # Добавление инбаунда
 ADD_RESULT=$(curl -s -b "$COOKIE_JAR" -X POST "http://127.0.0.1:${PORT}/${WEBPATH}/panel/api/inbounds/add" \
