@@ -160,14 +160,6 @@ for i in {1..30}; do
   sleep 0.5
 done
 
-# Генерация Reality ключей
-KEYS=$("$XRAY_BIN" x25519)
-PRIVATE_KEY=$(echo "$KEYS" | grep -i "Private" | sed -E 's/.*key:\s*//')
-PUBLIC_KEY=$(echo "$KEYS" | grep -i "Public" | sed -E 's/.*key:\s*//')
-SHORT_ID=$(head -c 8 /dev/urandom | xxd -p)
-UUID=$(cat /proc/sys/kernel/random/uuid)
-EMAIL=""
-
 # === Фиксированный SNI/DEST ===
 BEST_DOMAIN="docscenter.su"
 echo -e "${green}Используется фиксированный домен: ${BEST_DOMAIN}${plain}" >&3
@@ -184,100 +176,41 @@ if ! echo "$LOGIN_RESPONSE" | grep -q '"success":true'; then
     exit 1
 fi
 
-# Формирование JSON
-SETTINGS_JSON=$(jq -nc --arg uuid "$UUID" --arg email "$EMAIL" '{
-  clients: [
-    {
-      id: $uuid,
-      flow: "xtls-rprx-vision",
-      email: $email
-    }
-  ],
-  decryption: "none"
-}')
+# Получаем список инбаундов и берём первый с портом 443
+INBOUNDS_JSON=$(curl -s -b "$COOKIE_JAR" "http://127.0.0.1:${PORT}/${WEBPATH}/panel/api/inbounds/list")
+INBOUND=$(echo "$INBOUNDS_JSON" | jq -r '.inbounds[] | select(.port==443)')
 
-STREAM_SETTINGS_JSON=$(jq -nc --arg prk "$PRIVATE_KEY" --arg sid "$SHORT_ID" --arg dest "${BEST_DOMAIN}:443" --arg sni "$BEST_DOMAIN" '{
-  network: "tcp",
-  security: "reality",
-  realitySettings: {
-    show: false,
-    dest: $dest,
-    xver: 0,
-    serverNames: [$sni],
-    privateKey: $prk,
-    shortIds: [$sid]
-  }
-}')
+if [[ -z "$INBOUND" ]]; then
+    echo -e "${red}Инбаунд на порту 443 не найден в 3X-UI.${plain}" >&3
+    exit 1
+fi
 
-SNIFFING_JSON=$(jq -nc '{
-  enabled: true,
-  destOverride: ["http", "tls"]
-}')
+UUID=$(echo "$INBOUND" | jq -r '.settings.clients[0].id')
+PRIVATE_KEY=$(echo "$INBOUND" | jq -r '.streamSettings.realitySettings.privateKey')
+SHORT_ID=$(echo "$INBOUND" | jq -r '.streamSettings.realitySettings.shortIds[0]')
+EMAIL=$(echo "$INBOUND" | jq -r '.settings.clients[0].email')
 
-# === Определяем страну VPS для remark ===
-COUNTRY=$(curl -s ifconfig.io/country_code || echo "UNK")
-case "$COUNTRY" in
-    DE) COUNTRY_NAME="GER" ;;
-    FI) COUNTRY_NAME="FIN" ;;
-    NL) COUNTRY_NAME="NLD" ;;
-    FR) COUNTRY_NAME="FRA" ;;
-    RU) COUNTRY_NAME="RUS" ;;
-    *) COUNTRY_NAME="$COUNTRY" ;;
-esac
+SERVER_IP=$(curl -s --max-time 3 https://api.ipify.org || curl -s --max-time 3 https://4.ident.me)
+VLESS_LINK="vless://${UUID}@${SERVER_IP}:443?type=tcp&security=reality&encryption=none&flow=xtls-rprx-vision&sni=${BEST_DOMAIN}&fp=chrome&pbk=${PRIVATE_KEY}&sid=${SHORT_ID}&spx=%2F#${EMAIL}"
 
-remark="Vless${COUNTRY_NAME}"
+echo -e "\n\033[0;32mVLESS Reality успешно получен из 3X-UI!\033[0m" >&3
+echo -e "\033[1;36mВаш VPN ключ:\033[0m" >&3
+echo -e "${VLESS_LINK}" >&3
+echo -e ""
+qrencode -t ANSIUTF8 "$VLESS_LINK"
+qrencode -o /root/vless_qr.png "$VLESS_LINK"
+echo -e "QR-код также сохранён в файл: /root/vless_qr.png" >&3
 
-# Добавление инбаунда
-ADD_RESULT=$(curl -s -b "$COOKIE_JAR" -X POST "http://127.0.0.1:${PORT}/${WEBPATH}/panel/api/inbounds/add" \
-  -H "Content-Type: application/json" \
-  -d "$(jq -nc \
-    --argjson settings "$SETTINGS_JSON" \
-    --argjson stream "$STREAM_SETTINGS_JSON" \
-    --argjson sniffing "$SNIFFING_JSON" \
-    --arg remark "$remark" \
-    '{
-      enable: true,
-      remark: $remark,
-      listen: "0.0.0.0",
-      port: 443,
-      protocol: "vless",
-      settings: ($settings | tostring),
-      streamSettings: ($stream | tostring),
-      sniffing: ($sniffing | tostring)
-    }')"
-)
+{
+echo "Ваш VPN ключ:"
+echo "$VLESS_LINK"
+echo ""
+echo "QR PNG сохранён: /root/vless_qr.png"
+} >> /root/3x-ui.txt
 
 rm -f "$COOKIE_JAR"
 
-if echo "$ADD_RESULT" | grep -q '"success":true'; then
-    echo -e "${green}Инбаунд успешно добавлен через API.${plain}" >&3
-    systemctl restart x-ui >>"$LOG_FILE" 2>&1
-
-    SERVER_IP=$(curl -s --max-time 3 https://api.ipify.org || curl -s --max-time 3 https://4.ident.me)
-    VLESS_LINK="vless://${UUID}@${SERVER_IP}:443?type=tcp&security=reality&encryption=none&flow=xtls-rprx-vision&sni=${BEST_DOMAIN}&fp=chrome&pbk=${PUBLIC_KEY}&sid=${SHORT_ID}&spx=%2F#${EMAIL}"
-
-    echo -e "\n\033[0;32mVLESS Reality успешно создан!\033[0m" >&3
-    echo -e "\033[1;36mВаш VPN ключ:\033[0m" >&3
-    echo -e "${VLESS_LINK}" >&3
-    echo -e ""
-    qrencode -t ANSIUTF8 "$VLESS_LINK"
-    qrencode -o /root/vless_qr.png "$VLESS_LINK"
-    echo -e "QR-код также сохранён в файл: /root/vless_qr.png" >&3
-
-    {
-    echo "Ваш VPN ключ:"
-    echo "$VLESS_LINK"
-    echo ""
-    echo "QR PNG сохранён: /root/vless_qr.png"
-    } >> /root/3x-ui.txt
-else
-    echo -e "${red}Ошибка при добавлении инбаунда через API:${plain}" >&3
-    echo "$ADD_RESULT" >&3
-fi
-
 # Финал
-SERVER_IP=${SERVER_IP:-$(curl -s --max-time 3 https://api.ipify.org || curl -s --max-time 3 https://4.ident.me)}
-
 echo -e "\n\033[1;32mПанель управления 3X-UI доступна:\033[0m" >&3
 echo -e "Адрес: \033[1;36mhttp://${SERVER_IP}:${PORT}/${WEBPATH}\033[0m" >&3
 echo -e "Логин: \033[1;33m${USERNAME}\033[0m" >&3
