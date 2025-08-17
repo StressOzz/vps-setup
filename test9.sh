@@ -2,12 +2,16 @@
 
 clear
 
+# Цвета для терминала
 red='\033[0;31m'
 green='\033[0;32m'
 yellow='\033[0;33m'
 blue='\033[1;34m'
 cyan='\033[1;36m'
 plain='\033[0m'
+
+LOG_FILE="/var/log/3x-ui_install_log.txt"
+exec > >(tee -a "$LOG_FILE") 2>&1
 
 echo -e "${blue}=== 3X-UI Установка и настройка ===${plain}"
 
@@ -19,7 +23,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 echo -e "${green}Root проверка пройдена.${plain}"
 
-# Проверяем наличие команды x-ui
+# Проверяем наличие x-ui
 echo -e "${yellow}Проверка существующей панели x-ui...${plain}"
 if command -v x-ui &> /dev/null; then
     echo -e "${green}Обнаружена установленная панель x-ui.${plain}"
@@ -41,10 +45,11 @@ if command -v x-ui &> /dev/null; then
     echo -e "${green}Старая панель удалена.${plain}"
 fi
 
-# === Порт панели ===
+# Порт панели
 PORT=8080
 
-echo -e "${blue}Генерация случайных логина и пароля для панели...${plain}"
+# Генерация случайных данных
+echo -e "${yellow}Генерация случайного логина, пароля и пути панели...${plain}"
 gen_random_string() {
     local length="$1"
     LC_ALL=C tr -dc 'a-zA-Z0-9' </dev/urandom | fold -w "$length" | head -n 1
@@ -54,8 +59,8 @@ PASSWORD=$(gen_random_string 10)
 WEBPATH=$(gen_random_string 18)
 echo -e "${green}Логин: $USERNAME, Пароль: $PASSWORD, Путь веб-интерфейса: $WEBPATH${plain}"
 
-# Определение ОС
-echo -e "${yellow}Определяем вашу операционную систему...${plain}"
+# Определяем ОС
+echo -e "${yellow}Определяем операционную систему...${plain}"
 if [[ -f /etc/os-release ]]; then
     source /etc/os-release
     release=$ID
@@ -65,7 +70,7 @@ else
     exit 1
 fi
 
-# Определение архитектуры
+# Определяем архитектуру
 echo -e "${yellow}Определяем архитектуру системы...${plain}"
 arch() {
     case "$(uname -m)" in
@@ -92,17 +97,20 @@ if [[ "$(printf '%s\n' "$required_version" "$glibc_version" | sort -V | head -n1
 fi
 echo -e "${green}Версия GLIBC подходит.${plain}"
 
-# Установка 3x-ui
+# Скачиваем и распаковываем 3x-ui
 echo -e "${yellow}Скачиваем последнюю версию 3x-ui...${plain}"
 cd /usr/local/ || exit 1
-tag_version=$(curl -Ls "https://api.github.com/repos/MHSanaei/3x-ui/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+tag_version=$(curl -Ls "https://api.github.com/repos/MHSanaei/3x-ui/releases/latest" \
+               | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 if [[ -z "$tag_version" ]]; then
     echo -e "${red}Не удалось получить версию релиза 3x-ui${plain}"
     exit 1
 fi
 echo -e "${green}Версия релиза: $tag_version${plain}"
 
-wget -O x-ui-linux-${ARCH}.tar.gz https://github.com/MHSanaei/3x-ui/releases/download/${tag_version}/x-ui-linux-${ARCH}.tar.gz
+wget -4 -q -O x-ui-linux-${ARCH}.tar.gz \
+     https://github.com/MHSanaei/3x-ui/releases/download/${tag_version}/x-ui-linux-${ARCH}.tar.gz
+
 echo -e "${yellow}Распаковываем архив...${plain}"
 systemctl stop x-ui 2>/dev/null
 rm -rf /usr/local/x-ui/
@@ -118,28 +126,28 @@ if [[ -z "$XRAY_BIN" ]]; then
 fi
 chmod +x "$XRAY_BIN"
 
-echo -e "${yellow}Копируем и настраиваем сервис x-ui...${plain}"
+# Настройка сервиса
+echo -e "${yellow}Настраиваем сервис x-ui...${plain}"
 cp -f x-ui.service /etc/systemd/system/
-wget -O /usr/bin/x-ui https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.sh
+wget -4 -q -O /usr/bin/x-ui https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.sh
 chmod +x /usr/local/x-ui/x-ui.sh /usr/bin/x-ui
 
 echo -e "${yellow}Применяем настройки панели...${plain}"
-/usr/local/x-ui/x-ui setting -username "$USERNAME" -password "$PASSWORD" -port "$PORT" -webBasePath "$WEBPATH"
-/usr/local/x-ui/x-ui migrate
+/usr/local/x-ui/x-ui setting -username "$USERNAME" -password "$PASSWORD" -port "$PORT" -webBasePath "$WEBPATH" >> "$LOG_FILE" 2>&1
+/usr/local/x-ui/x-ui migrate >> "$LOG_FILE" 2>&1
 
-systemctl daemon-reload
-systemctl enable x-ui
-systemctl start x-ui
+systemctl daemon-reload >> "$LOG_FILE" 2>&1
+systemctl enable x-ui >> "$LOG_FILE" 2>&1
+systemctl start x-ui >> "$LOG_FILE" 2>&1
 
-# Ждём пока панель поднимется
 echo -e "${yellow}Ждём пока панель поднимется...${plain}"
 for i in {1..30}; do
-  curl -s "http://127.0.0.1:${PORT}/${WEBPATH}/login" >/dev/null && break
-  sleep 0.5
+    curl -s "http://127.0.0.1:${PORT}/${WEBPATH}/login" >/dev/null && break
+    sleep 0.5
 done
 echo -e "${green}Панель запущена.${plain}"
 
-# Генерация Reality ключей
+# Генерация ключей Reality
 echo -e "${yellow}Генерация ключей Reality...${plain}"
 KEYS=$("$XRAY_BIN" x25519)
 PRIVATE_KEY=$(echo "$KEYS" | grep -i "Private" | sed -E 's/.*key:\s*//')
@@ -151,6 +159,7 @@ EMAIL=""
 BEST_DOMAIN="docscenter.su"
 echo -e "${green}Используется фиксированный домен: ${BEST_DOMAIN}${plain}"
 
+# Авторизация через cookie и добавление инбаунда
 COOKIE_JAR=$(mktemp)
 LOGIN_RESPONSE=$(curl -s -c "$COOKIE_JAR" -X POST "http://127.0.0.1:${PORT}/${WEBPATH}/login" \
   -H "Content-Type: application/json" \
@@ -158,38 +167,19 @@ LOGIN_RESPONSE=$(curl -s -c "$COOKIE_JAR" -X POST "http://127.0.0.1:${PORT}/${WE
 
 if ! echo "$LOGIN_RESPONSE" | grep -q '"success":true'; then
     echo -e "${red}Ошибка авторизации через cookie.${plain}"
-    echo "$LOGIN_RESPONSE"
     exit 1
 fi
 
-# Настройка JSON для инбаунда
-echo -e "${yellow}Добавляем инбаунд через API...${plain}"
 SETTINGS_JSON=$(jq -nc --arg uuid "$UUID" --arg email "$EMAIL" '{
-  clients: [
-    {
-      id: $uuid,
-      flow: "xtls-rprx-vision",
-      email: $email
-    }
-  ],
+  clients: [{id: $uuid, flow: "xtls-rprx-vision", email: $email}],
   decryption: "none"
 }')
 STREAM_SETTINGS_JSON=$(jq -nc --arg prk "$PRIVATE_KEY" --arg sid "$SHORT_ID" --arg dest "${BEST_DOMAIN}:443" --arg sni "$BEST_DOMAIN" '{
   network: "tcp",
   security: "reality",
-  realitySettings: {
-    show: false,
-    dest: $dest,
-    xver: 0,
-    serverNames: [$sni],
-    privateKey: $prk,
-    shortIds: [$sid]
-  }
+  realitySettings: {show:false, dest:$dest, xver:0, serverNames:[$sni], privateKey:$prk, shortIds:[$sid]}
 }')
-SNIFFING_JSON=$(jq -nc '{
-  enabled: true,
-  destOverride: ["http", "tls"]
-}')
+SNIFFING_JSON=$(jq -nc '{enabled:true, destOverride:["http","tls"]}')
 COUNTRY=$(curl -s ifconfig.io/country_code || echo "UNK")
 case "$COUNTRY" in
     DE) COUNTRY_NAME="GER" ;;
@@ -203,42 +193,21 @@ remark="Vless${COUNTRY_NAME}"
 
 ADD_RESULT=$(curl -s -b "$COOKIE_JAR" -X POST "http://127.0.0.1:${PORT}/${WEBPATH}/panel/api/inbounds/add" \
   -H "Content-Type: application/json" \
-  -d "$(jq -nc \
-    --argjson settings "$SETTINGS_JSON" \
-    --argjson stream "$STREAM_SETTINGS_JSON" \
-    --argjson sniffing "$SNIFFING_JSON" \
-    --arg remark "$remark" \
-    '{
-      enable: true,
-      remark: $remark,
-      listen: "0.0.0.0",
-      port: 443,
-      protocol: "vless",
-      settings: ($settings | tostring),
-      streamSettings: ($stream | tostring),
-      sniffing: ($sniffing | tostring)
-    }')"
+  -d "$(jq -nc --argjson settings "$SETTINGS_JSON" --argjson stream "$STREAM_SETTINGS_JSON" --argjson sniffing "$SNIFFING_JSON" --arg remark "$remark" \
+      '{enable:true, remark:$remark, listen:"0.0.0.0", port:443, protocol:"vless", settings:($settings|tostring), streamSettings:($stream|tostring), sniffing:($sniffing|tostring)}')"
 )
 rm -f "$COOKIE_JAR"
 
-if echo "$ADD_RESULT" | grep -q '"success":true'; then
-    echo -e "${green}Инбаунд успешно добавлен.${plain}"
-    systemctl restart x-ui
-    SERVER_IP=$(curl -s --max-time 3 https://api.ipify.org || curl -s --max-time 3 https://4.ident.me)
-    VLESS_LINK="vless://${UUID}@${SERVER_IP}:443?type=tcp&security=reality&encryption=none&flow=xtls-rprx-vision&sni=${BEST_DOMAIN}&fp=chrome&pbk=${PUBLIC_KEY}&sid=${SHORT_ID}&spx=%2F#${EMAIL}"
-    echo -e "${green}VLESS Reality успешно создан!${plain}"
-    echo "Ваш VPN ключ:"
-    echo "$VLESS_LINK"
-    echo "$VLESS_LINK" > /root/3x-ui.txt
-else
-    echo -e "${red}Ошибка при добавлении инбаунда через API:${plain}"
-    echo "$ADD_RESULT"
-fi
+SERVER_IP=$(curl -s --max-time 3 https://api.ipify.org || curl -s --max-time 3 https://4.ident.me)
+VLESS_LINK="vless://${UUID}@${SERVER_IP}:443?type=tcp&security=reality&encryption=none&flow=xtls-rprx-vision&sni=${BEST_DOMAIN}&fp=chrome&pbk=${PUBLIC_KEY}&sid=${SHORT_ID}&spx=%2F#${EMAIL}"
 
-SERVER_IP=${SERVER_IP:-$(curl -s --max-time 3 https://api.ipify.org || curl -s --max-time 3 https://4.ident.me)}
-echo -e "${blue}\n=== Установка завершена ===${plain}"
-echo "Панель управления 3X-UI доступна:"
-echo "Адрес: http://${SERVER_IP}:${PORT}/${WEBPATH}"
-echo "Логин: ${USERNAME}"
-echo "Пароль: ${PASSWORD}"
-echo "Все данные сохранены в: /root/3x-ui.txt"
+# Финальный вывод
+echo -e "\n${cyan}=== Установка завершена ===${plain}"
+echo -e "${green}Панель управления 3X-UI доступна:${plain}"
+echo -e "${yellow}Адрес:${plain} ${cyan}http://${SERVER_IP}:${PORT}/${WEBPATH}${plain}"
+echo -e "${yellow}Логин:${plain} ${cyan}${USERNAME}${plain}"
+echo -e "${yellow}Пароль:${plain} ${cyan}${PASSWORD}${plain}"
+echo -e "${yellow}VLESS Reality ключ:${plain} ${cyan}${VLESS_LINK}${plain}"
+echo -e "${green}Все данные сохранены в лог-файл: /root/3x-ui.txt и /var/log/3x-ui_install_log.txt${plain}"
+
+echo "$VLESS_LINK" > /root/3x-ui.txt
