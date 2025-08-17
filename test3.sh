@@ -41,23 +41,8 @@ yellow='\033[0;33m'
 plain='\033[0m'
 
 # === Порт панели ===
-if [[ "$1" == "--extend" ]]; then
-    read -rp $'\033[0;33mВведите порт для панели (Enter для 8080): \033[0m' USER_PORT
-    PORT=${USER_PORT:-8080}
-
-    echo -e "\n${yellow}Хотите установить SelfSNI (поддельный сайт для маскировки)?${plain}"
-    read -rp $'\033[0;36mВведите y для установки или Enter для пропуска: \033[0m' INSTALL_SELFSNI
-    if [[ "$INSTALL_SELFSNI" == "y" || "$INSTALL_SELFSNI" == "Y" ]]; then
-        echo -e "${green}Устанавливается SelfSNI...${plain}" >&3
-        bash <(curl -Ls https://raw.githubusercontent.com/YukiKras/vless-scripts/refs/heads/main/fakesite.sh)
-    else
-        echo -e "${yellow}Установка SelfSNI пропущена.${plain}" >&3
-    fi
-else
     PORT=8080
-    echo -e "${yellow}Порт панели не указан, используется по умолчанию: ${PORT}${plain}" >&3
-fi
-
+    
 echo -e "Весь процесс установки будет сохранён в файле: \033[0;36m${LOG_FILE}\033[0m" >&3
 echo -e "\n\033[1;34mИдёт установка... Пожалуйста, не закрывайте терминал.\033[0m" >&3
 
