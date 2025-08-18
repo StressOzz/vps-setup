@@ -294,4 +294,5 @@ echo -e "\033[1;32mВаш VPN ключ:\033[0m" >&3
 echo -e "${VLESS_LINK}" >&3
 echo -e ""
 echo -e "Все данные сохранены в: \033[1;36m/root/3x-ui.txt\033[0m" >&3
+echo -e "QR-код сохранён в файл: \033[1;36m/root/vless_qr.png033[0m" >&3
 echo -e ""
