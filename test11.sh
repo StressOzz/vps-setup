@@ -290,10 +290,7 @@ echo -e "\n\033[1;32mПанель управления 3X-UI доступна:\0
 echo -e "Адрес: \033[1;33mhttp://${SERVER_IP}:${PORT}/${WEBPATH}\033[0m" >&3
 echo -e "Логин: \033[1;33m${USERNAME}\033[0m" >&3
 echo -e "Пароль: \033[1;33m${PASSWORD}\033[0m" >&3
-echo -e ""
 echo -e "\033[1;32mВаш VPN ключ:\033[0m" >&3
 echo -e "${VLESS_LINK}" >&3
-echo -e ""
 echo -e "Все данные сохранены в: \033[1;36m/root/3x-ui.txt\033[0m" >&3
 echo -e "QR-код сохранён в файл: \033[1;36m/root/vless_qr.png\033[0m" >&3
-echo -e ""
