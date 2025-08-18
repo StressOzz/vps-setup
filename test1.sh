@@ -267,13 +267,16 @@ if echo "$ADD_RESULT" | grep -q '"success":true'; then
 
 {
   echo "=== Данные панели 3x-ui ==="
+  echo ""
   echo "Адрес панели: http://${SERVER_IP}:${PORT}/${WEBPATH}"
   echo "Логин: ${USERNAME}"
   echo "Пароль: ${PASSWORD}"
   echo ""
+  echo ""
   echo "=== VLESS Reality ==="
-  echo "Ваш VPN ключ:"
+  echo ""
   echo "$VLESS_LINK"
+  echo ""
   echo ""
   echo "QR PNG сохранён: /root/vless_qr.png"
 } >> /root/3x-ui.txt
