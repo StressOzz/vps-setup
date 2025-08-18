@@ -35,17 +35,10 @@ if command -v x-ui &> /dev/null; then
     echo "x-ui успешно удалена. Продолжаем выполнение скрипта..."
 fi
 
-# Вывод всех команд кроме диалога — в лог
-exec 3>&1
-LOG_FILE="/var/log/3x-ui_install_log.txt"
-exec > >(tee -a "$LOG_FILE") 2> >(tee -a "$LOG_FILE" >&2)
-
-
 # === Порт панели ===
 PORT=8080
     
-echo -e "Весь процесс установки будет сохранён в файле: \033[0;36m${LOG_FILE}\033[0m" >&3
-echo -e "\n\033[1;34mИдёт установка... Пожалуйста, не закрывайте терминал.\033[0m" >&3
+echo -e "\n\033[1;34mИдёт установка... Пожалуйста, не закрывайте терминал.\033[0m"
 
 # Генерация случайных данных
 gen_random_string() {
@@ -61,7 +54,7 @@ if [[ -f /etc/os-release ]]; then
     source /etc/os-release
     release=$ID
 else
-    echo "Не удалось определить ОС" >&3
+    echo "Не удалось определить ОС"
     exit 1
 fi
 
@@ -83,8 +76,8 @@ ARCH=$(arch)
 glibc_version=$(ldd --version | head -n1 | awk '{print $NF}')
 required_version="2.32"
 if [[ "$(printf '%s\n' "$required_version" "$glibc_version" | sort -V | head -n1)" != "$required_version" ]]; then
-    echo -e "${red}GLIBC слишком старая ($glibc_version), требуется >= 2.32.${plain}" >&3
-    echo -e "${red}Вам необходимо установить более свежую ОС${plain}" >&3
+    echo -e "${red}GLIBC слишком старая ($glibc_version), требуется >= 2.32.${plain}"
+    echo -e "${red}Вам необходимо установить более свежую ОС${plain}"
     exit 1
 fi
 
@@ -120,13 +113,13 @@ esac
 cd /usr/local/ || exit 1
 tag_version=$(curl -Ls "https://api.github.com/repos/MHSanaei/3x-ui/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 if [[ -z "$tag_version" ]]; then
-    echo -e "${red}Не удалось получить версию релиза 3x-ui${plain}" >&3
+    echo -e "${red}Не удалось получить версию релиза 3x-ui${plain}"
     exit 1
 fi
 
 wget -4 -q -O x-ui-linux-${ARCH}.tar.gz https://github.com/MHSanaei/3x-ui/releases/download/${tag_version}/x-ui-linux-${ARCH}.tar.gz
 if [[ ! -s x-ui-linux-${ARCH}.tar.gz ]]; then
-    echo -e "${red}Скачивание 3x-ui не удалось (архив пустой)${plain}" >&3
+    echo -e "${red}Скачивание 3x-ui не удалось (архив пустой)${plain}"
     exit 1
 fi
 
@@ -139,7 +132,7 @@ cd x-ui || exit 1
 chmod +x x-ui
 XRAY_BIN=$(ls -1 bin/xray-* 2>/dev/null | head -n1)
 if [[ -z "$XRAY_BIN" ]]; then
-  echo -e "${red}Не найден бинарник xray в /usr/local/x-ui/bin${plain}" >&3
+  echo -e "${red}Не найден бинарник xray в /usr/local/x-ui/bin${plain}"
   exit 1
 fi
 chmod +x "$XRAY_BIN"
@@ -148,12 +141,12 @@ cp -f x-ui.service /etc/systemd/system/
 wget -4 -q -O /usr/bin/x-ui https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.sh
 chmod +x /usr/local/x-ui/x-ui.sh /usr/bin/x-ui
 
-/usr/local/x-ui/x-ui setting -username "$USERNAME" -password "$PASSWORD" -port "$PORT" -webBasePath "$WEBPATH" >>"$LOG_FILE" 2>&1
-/usr/local/x-ui/x-ui migrate >>"$LOG_FILE" 2>&1
+/usr/local/x-ui/x-ui setting -username "$USERNAME" -password "$PASSWORD" -port "$PORT" -webBasePath "$WEBPATH"
+/usr/local/x-ui/x-ui migrate
 
-systemctl daemon-reload >>"$LOG_FILE" 2>&1
-systemctl enable x-ui >>"$LOG_FILE" 2>&1
-systemctl start x-ui >>"$LOG_FILE" 2>&1
+systemctl daemon-reload
+systemctl enable x-ui
+systemctl start x-ui
 
 # Ждём пока панель поднимется
 for i in {1..30}; do
@@ -179,8 +172,8 @@ LOGIN_RESPONSE=$(curl -s -c "$COOKIE_JAR" -X POST "http://127.0.0.1:${PORT}/${WE
   -d "{\"username\": \"${USERNAME}\", \"password\": \"${PASSWORD}\"}")
 
 if ! echo "$LOGIN_RESPONSE" | grep -q '"success":true'; then
-    echo -e "${red}Ошибка авторизации через cookie.${plain}" >&3
-    echo "$LOGIN_RESPONSE" >&3
+    echo -e "${red}Ошибка авторизации через cookie.${plain}"
+    echo "$LOGIN_RESPONSE"
     exit 1
 fi
 
@@ -250,14 +243,14 @@ ADD_RESULT=$(curl -s -b "$COOKIE_JAR" -X POST "http://127.0.0.1:${PORT}/${WEBPAT
 rm -f "$COOKIE_JAR"
 
 if echo "$ADD_RESULT" | grep -q '"success":true'; then
-    systemctl restart x-ui >>"$LOG_FILE" 2>&1
+    systemctl restart x-ui
 
     SERVER_IP=$(curl -s --max-time 3 https://api.ipify.org || curl -s --max-time 3 https://4.ident.me)
     VLESS_LINK="vless://${UUID}@${SERVER_IP}:443?type=tcp&security=reality&pbk=${PUBLIC_KEY}&fp=chrome&sni=${BEST_DOMAIN}&sid=${SHORT_ID}&spx=%2F&flow=xtls-rprx-vision#${remark}"
     
 clear
 
-    echo -e "\n\033[0;32mVLESS Reality успешно создан!\033[0m" >&3
+    echo -e "\n\033[0;32mVLESS Reality успешно создан!\033[0m"
     echo -e ""
     qrencode -t ANSIUTF8 "$VLESS_LINK"
     qrencode -o /root/vless_QR.png "$VLESS_LINK"
@@ -279,18 +272,18 @@ clear
 } >> /root/3x-ui.txt
 
 else
-    echo -e "${red}Ошибка при добавлении инбаунда через API:${plain}" >&3
-    echo "$ADD_RESULT" >&3
+    echo -e "${red}Ошибка при добавлении инбаунда через API:${plain}"
+    echo "$ADD_RESULT"
 fi
 
 # Финал
 SERVER_IP=${SERVER_IP:-$(curl -s --max-time 3 https://api.ipify.org || curl -s --max-time 3 https://4.ident.me)}
 
-echo -e "\n\033[1;32mПанель управления 3X-UI доступна:\033[0m" >&3
-echo -e "Адрес: \033[1;33mhttp://${SERVER_IP}:${PORT}/${WEBPATH}\033[0m" >&3
-echo -e "Логин: \033[1;33m${USERNAME}\033[0m" >&3
-echo -e "Пароль: \033[1;33m${PASSWORD}\033[0m" >&3
-echo -e "\033[1;32mВаш VPN ключ:\033[0m" >&3
-echo -e "${VLESS_LINK}" >&3
-echo -e "Все данные сохранены в: \033[1;36m/root/3x-ui.txt\033[0m" >&3
-echo -e "QR-код сохранён в файл: \033[1;36m/root/vless_qr.png\033[0m" >&3
+echo -e "\n\033[1;32mПанель управления 3X-UI доступна:\033[0m"
+echo -e "Адрес: \033[1;33mhttp://${SERVER_IP}:${PORT}/${WEBPATH}\033[0m"
+echo -e "Логин: \033[1;33m${USERNAME}\033[0m"
+echo -e "Пароль: \033[1;33m${PASSWORD}\033[0m"
+echo -e "\033[1;32mВаш VPN ключ:\033[0m"
+echo -e "${VLESS_LINK}"
+echo -e "Все данные сохранены в: \033[1;36m/root/3x-ui.txt\033[0m"
+echo -e "QR-код сохранён в файл: \033[1;36m/root/vless_qr.png\033[0m"
