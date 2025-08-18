@@ -2,6 +2,11 @@
 
 clear
 
+red='\033[0;31m'
+green='\033[0;32m'
+yellow='\033[0;33m'
+plain='\033[0m'
+
 # Проверка root
 if [[ $EUID -ne 0 ]]; then
   echo "Ошибка: скрипт нужно запускать от root" >&2
@@ -10,10 +15,10 @@ fi
 
 # Проверяем наличие команды x-ui
 if command -v x-ui &> /dev/null; then
-    echo "Обнаружена установленная панель x-ui."
+    echo "\033[0;31mОбнаружена установленная панель x-ui.\033[0m"
 
     # Запрос у пользователя на переустановку
-    read -p "Вы хотите переустановить x-ui? [y/N]: " confirm
+    read -p "\033[0;32mВы хотите переустановить x-ui? [y/N]: \033[0m" confirm
     confirm=${confirm,,}  # перевод в нижний регистр
 
     if [[ "$confirm" != "y" && "$confirm" != "yes" ]]; then
@@ -35,10 +40,6 @@ exec 3>&1
 LOG_FILE="/var/log/3x-ui_install_log.txt"
 exec > >(tee -a "$LOG_FILE") 2> >(tee -a "$LOG_FILE" >&2)
 
-red='\033[0;31m'
-green='\033[0;32m'
-yellow='\033[0;33m'
-plain='\033[0m'
 
 # === Порт панели ===
 PORT=8080
