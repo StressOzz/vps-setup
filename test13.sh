@@ -280,10 +280,16 @@ fi
 SERVER_IP=${SERVER_IP:-$(curl -s --max-time 3 https://api.ipify.org || curl -s --max-time 3 https://4.ident.me)}
 
 echo -e "\n\033[1;32mПанель управления 3X-UI доступна:\033[0m"
+echo ""
 echo -e "Адрес: \033[1;33mhttp://${SERVER_IP}:${PORT}/${WEBPATH}\033[0m"
 echo -e "Логин: \033[1;33m${USERNAME}\033[0m"
 echo -e "Пароль: \033[1;33m${PASSWORD}\033[0m"
+echo ""
+echo ""
 echo -e "\033[1;32mВаш VPN ключ:\033[0m"
 echo -e "${VLESS_LINK}"
+echo ""
+echo ""
 echo -e "Все данные сохранены в: \033[1;36m/root/3x-ui.txt\033[0m"
 echo -e "QR-код сохранён в файл: \033[1;36m/root/vless_qr.png\033[0m"
+echo ""
