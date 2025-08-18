@@ -258,8 +258,7 @@ if echo "$ADD_RESULT" | grep -q '"success":true'; then
     echo -e "\n\033[0;32mVLESS Reality успешно создан!\033[0m" >&3
     echo -e ""
     qrencode -t ANSIUTF8 "$VLESS_LINK"
-    qrencode -o /root/vless_qr.png "$VLESS_LINK"
-    echo -e "QR-код также сохранён в файл: /root/vless_qr.png" >&3
+    qrencode -o /root/vless_QR.png "$VLESS_LINK"
 
 {
   echo "=== Данные панели 3x-ui ==="
@@ -290,8 +289,8 @@ echo -e "Адрес: \033[1;33mhttp://${SERVER_IP}:${PORT}/${WEBPATH}\033[0m" >&
 echo -e "Логин: \033[1;33m${USERNAME}\033[0m" >&3
 echo -e "Пароль: \033[1;33m${PASSWORD}\033[0m" >&3
 echo -e ""
-echo -e ""
-echo -e "\033[1;36mВаш VPN ключ:\033[0m" >&3
+echo -e "\033[1;32mВаш VPN ключ:\033[0m" >&3
 echo -e "${VLESS_LINK}" >&3
 echo -e ""
 echo -e "Все данные сохранены в: \033[1;36m/root/3x-ui.txt\033[0m" >&3
+echo -e ""
